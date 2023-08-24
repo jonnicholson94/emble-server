@@ -28,8 +28,8 @@ func Initialise() {
 		log.Fatal("Error connecting to datab", err)
 	}
 
-	db.SetMaxOpenConns(1)
-	db.SetMaxIdleConns(1)
+	db.SetMaxOpenConns(3)
+	db.SetMaxIdleConns(3)
 
 	err = db.Ping()
 
@@ -38,6 +38,7 @@ func Initialise() {
 	}
 
 	fmt.Println("Connected to the database")
+
 }
 
 func GetDB() *sql.DB {
