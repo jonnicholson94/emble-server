@@ -1,13 +1,12 @@
 package utils
 
 import (
-	"errors"
 	"os"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-func DecodeTokenId(tokenString string) (string, error) {
+func DecodeTokenId(tokenString string) (float64, error) {
 
 	jwtKey := []byte(os.Getenv("JWT_KEY"))
 
@@ -16,22 +15,25 @@ func DecodeTokenId(tokenString string) (string, error) {
 	})
 
 	if err != nil || !token.Valid {
-		return "", err
+		return 0, err
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 
 	if !ok {
-		return "", err
+		return 0, err
 	}
 
-	var userID string
-	switch v := claims["user_id"].(type) {
-	case string:
-		userID = v
-	default:
-		return "", errors.New("user_id is not a string")
+	uidRaw, ok := claims["user_id"]
+	if !ok {
+
 	}
 
-	return userID, nil
+	uid, ok := uidRaw.(float64)
+	if !ok {
+		// Handle the case where the type assertion failed
+		// This might occur if the "user_id" is not a number
+	}
+
+	return uid, nil
 }

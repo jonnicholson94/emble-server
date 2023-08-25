@@ -6,20 +6,29 @@ import (
 	"emble-server/utils"
 	"emble-server/ws"
 	"net/http"
+
+	"github.com/rs/cors"
 )
 
 func main() {
 
 	utils.Initialise()
 
-	http.HandleFunc("/create-user", auth.CreateUser)
-	http.HandleFunc("/sign-in", auth.SignIn)
-	http.HandleFunc("/validate-user", utils.ValidateToken)
-	http.HandleFunc("/create-research", crud.CreateResearch)
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/ws", ws.Websocket)
+	mux.HandleFunc("/create-user", auth.CreateUser)
+	mux.HandleFunc("/sign-in", auth.SignIn)
+	mux.HandleFunc("/validate-user", utils.ValidateToken)
+	mux.HandleFunc("/create-research", crud.CreateResearch)
 
-	http.ListenAndServe(":8080", nil)
+	mux.HandleFunc("/ws", ws.Websocket)
+
+	// Very important!!!
+	// Essential to review the cors AllowAll before app is production ready.
+
+	handler := cors.AllowAll().Handler(mux)
+
+	http.ListenAndServe(":8080", handler)
 
 	utils.GetDB().Close()
 }

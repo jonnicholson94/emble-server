@@ -45,12 +45,17 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	data, err := db.Exec(query, nr.Title, nr.Description, nr.Status, nr.Limit, nr.PrototypeUrl, uid)
 
+	fmt.Println(data)
+
 	if err != nil {
 		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	fmt.Println(data)
+	res, err := json.Marshal("Successfully created the research")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
 
 }
