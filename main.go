@@ -20,6 +20,7 @@ func main() {
 	mux.HandleFunc("/sign-in", auth.SignIn)
 	mux.HandleFunc("/validate-user", utils.ValidateToken)
 	mux.HandleFunc("/create-research", crud.CreateResearch)
+	mux.HandleFunc("/research", crud.FetchResearch)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 
