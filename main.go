@@ -21,6 +21,7 @@ func main() {
 	mux.HandleFunc("/validate-user", utils.ValidateToken)
 	mux.HandleFunc("/create-research", crud.CreateResearch)
 	mux.HandleFunc("/research", crud.FetchResearch)
+	mux.HandleFunc("/single-research", crud.FetchSingleResearch)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 
