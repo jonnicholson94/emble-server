@@ -1,37 +1,46 @@
 package utils
 
 import (
+	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
-func ValidateToken(w http.ResponseWriter, r *http.Request) {
+func ValidateToken(tokenString string) error {
+
 	jwtKey := []byte(os.Getenv("JWT_KEY"))
-	tokenString := r.Header.Get("Authorization")
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
 	})
 
 	if err != nil || !token.Valid {
-		http.Error(w, "Invalid token", http.StatusUnauthorized)
-		return
+		fmt.Println("Token isn't valid")
+		return errors.New("Token isn't valid")
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		http.Error(w, "Invalid claims", http.StatusUnauthorized)
-		return
+		fmt.Println("Unable to map claims")
+		return errors.New("Unable to map claims")
 	}
 
-	fmt.Println(claims["user_id"])
-	fmt.Println(claims["first_name"])
-	fmt.Println(claims["last_name"])
-	fmt.Println(time.Now().Unix())
-	fmt.Println(int(claims["expiry"].(float64)))
+	expiryClaim, ok := claims["expiry"].(float64)
+	if !ok {
+		fmt.Println("Invalid expiry date")
+		return errors.New("Invalid expiry date")
+	}
 
+	expiryTime := time.Unix(int64(expiryClaim), 0)
+	currentTime := time.Now()
+
+	if currentTime.After(expiryTime) {
+		fmt.Println("Token has expired")
+		return errors.New("Token has expired. Log the user out")
+	}
+
+	return nil
 }

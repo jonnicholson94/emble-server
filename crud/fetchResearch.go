@@ -21,6 +21,13 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("Authorization")
 
+	tokenErr := utils.ValidateToken(token)
+
+	if tokenErr != nil {
+		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	uid, err := utils.DecodeTokenId(token)
 
 	if err != nil {

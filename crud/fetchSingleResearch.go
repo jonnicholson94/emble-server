@@ -9,6 +9,15 @@ import (
 
 func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
+	tk := r.Header.Get("Authorization")
+
+	tokenErr := utils.ValidateToken(tk)
+
+	if tokenErr != nil {
+		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	id := r.URL.Query().Get("id")
 
 	db := utils.GetDB()

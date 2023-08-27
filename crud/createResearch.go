@@ -19,6 +19,13 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	tk := r.Header.Get("Authorization")
 
+	tokenErr := utils.ValidateToken(tk)
+
+	if tokenErr != nil {
+		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	var nr Research
 
 	err := json.NewDecoder(r.Body).Decode(&nr)

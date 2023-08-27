@@ -18,7 +18,6 @@ func main() {
 
 	mux.HandleFunc("/create-user", auth.CreateUser)
 	mux.HandleFunc("/sign-in", auth.SignIn)
-	mux.HandleFunc("/validate-user", utils.ValidateToken)
 	mux.HandleFunc("/create-research", crud.CreateResearch)
 	mux.HandleFunc("/research", crud.FetchResearch)
 	mux.HandleFunc("/single-research", crud.FetchSingleResearch)
