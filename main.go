@@ -21,6 +21,7 @@ func main() {
 	mux.HandleFunc("/create-research", crud.CreateResearch)
 	mux.HandleFunc("/research", crud.FetchResearch)
 	mux.HandleFunc("/single-research", crud.FetchSingleResearch)
+	mux.HandleFunc("/create-question", crud.CreateQuestion)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 
