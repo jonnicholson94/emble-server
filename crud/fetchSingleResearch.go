@@ -108,7 +108,8 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 		if finalResearch.ID != result.ID {
 			finalResearch.ID = result.ID
-			finalResearch.Title = result.Description
+			finalResearch.Title = result.Title
+			finalResearch.Description = result.Description
 			finalResearch.Limit = result.Limit
 			finalResearch.Status = result.Status
 			finalResearch.PrototypeUrl = result.PrototypeUrl
