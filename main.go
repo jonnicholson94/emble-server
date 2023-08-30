@@ -23,6 +23,7 @@ func main() {
 	mux.HandleFunc("/single-research", crud.FetchSingleResearch)
 	mux.HandleFunc("/create-question", crud.CreateQuestion)
 	mux.HandleFunc("/edit-item", crud.EditItem)
+	mux.HandleFunc("/update-question-order", crud.UpdateQuestionOrder)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 
