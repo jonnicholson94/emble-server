@@ -24,6 +24,8 @@ func main() {
 	mux.HandleFunc("/create-question", crud.CreateQuestion)
 	mux.HandleFunc("/edit-item", crud.EditItem)
 	mux.HandleFunc("/update-question-order", crud.UpdateQuestionOrder)
+	mux.HandleFunc("/add-options", crud.AddOption)
+	mux.HandleFunc("/edit-question", crud.UpdateQuestion)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 
