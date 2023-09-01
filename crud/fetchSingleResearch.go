@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"database/sql"
 	"emble-server/utils"
 	"encoding/json"
 	"fmt"
@@ -19,18 +20,18 @@ type FinalResearch struct {
 }
 
 type JoinedResearch struct {
-	ID                 string `json:"ID"`
-	Title              string `json:"title"`
-	Description        string `json:"description"`
-	Status             string `json:"status"`
-	Limit              int    `json:"limit"`
-	PrototypeUrl       string `json:"prototype_url"`
-	UserId             string `json:"user_id"`
-	QuestionID         string `json:"question_id"`
-	QuestionTitle      string `json:"question_title"`
-	QuestionType       string `json:"question_type"`
-	QuestionResearchId string `json:"question_research_id"`
-	QuestionIndex      int    `json:"question_index"`
+	ID                 string         `json:"ID"`
+	Title              string         `json:"title"`
+	Description        string         `json:"description"`
+	Status             string         `json:"status"`
+	Limit              int            `json:"limit"`
+	PrototypeUrl       string         `json:"prototype_url"`
+	UserId             string         `json:"user_id"`
+	QuestionID         sql.NullString `json:"question_id"`
+	QuestionTitle      sql.NullString `json:"question_title"`
+	QuestionType       sql.NullString `json:"question_type"`
+	QuestionResearchId sql.NullString `json:"question_research_id"`
+	QuestionIndex      sql.NullInt32  `json:"question_index"`
 }
 
 type Question struct {
@@ -61,11 +62,13 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 	// Define the query
 
-	query := "SELECT research.*, questions.* FROM research JOIN questions ON research.id = questions.research_id WHERE research.id = $1;"
+	query := "SELECT research.*, questions.* FROM research LEFT JOIN questions ON research.id = questions.research_id WHERE research.id = $1;"
 
 	var finalResearch FinalResearch
 
 	rows, err := db.Query(query, id)
+
+	fmt.Println(rows)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -91,19 +94,19 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			&result.QuestionIndex,
 		)
 
+		// Append the question to the associated research's Questions slice
+		question := Question{
+			QuestionID:         result.QuestionID.String,
+			QuestionTitle:      result.QuestionTitle.String,
+			QuestionType:       result.QuestionType.String,
+			QuestionResearchId: result.QuestionResearchId.String,
+			QuestionIndex:      int(result.QuestionIndex.Int32),
+		}
+
 		if scanErr != nil {
 			fmt.Println(scanErr)
 			http.Error(w, scanErr.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		// Append the question to the associated research's Questions slice
-		question := Question{
-			QuestionID:         result.QuestionID,
-			QuestionTitle:      result.QuestionTitle,
-			QuestionType:       result.QuestionType,
-			QuestionResearchId: result.QuestionResearchId,
-			QuestionIndex:      result.QuestionIndex,
 		}
 
 		if finalResearch.ID != result.ID {
