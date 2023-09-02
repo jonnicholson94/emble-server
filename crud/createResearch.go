@@ -8,11 +8,19 @@ import (
 )
 
 type Research struct {
-	Title        string `json:"title"`
-	Description  string `json:"description"`
-	Status       string `json:"status"`
-	Limit        int    `json:"limit"`
-	PrototypeUrl string `json:"prototype_url"`
+	Title        string        `json:"title"`
+	Description  string        `json:"description"`
+	Status       string        `json:"status"`
+	Limit        int           `json:"limit"`
+	PrototypeUrl string        `json:"prototype_url"`
+	Questions    []NewQuestion `json:"questions"`
+}
+
+type NewQuestion struct {
+	Title      string `json:"title"`
+	Type       string `json:"type"`
+	ResearchId string `json:"research_id"`
+	Index      int    `json:"index"`
 }
 
 func CreateResearch(w http.ResponseWriter, r *http.Request) {
@@ -36,9 +44,11 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	fmt.Println(nr)
+
 	db := utils.GetDB()
 
-	query := "INSERT INTO research (title, description, status, \"limit\", prototype_url, user_id) VALUES ($1, $2, $3, $4, $5, $6)"
+	query := "INSERT INTO research (title, description, status, \"limit\", prototype_url, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
 
 	// Decode the token to get the user id
 
@@ -50,14 +60,29 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := db.Exec(query, nr.Title, nr.Description, nr.Status, nr.Limit, nr.PrototypeUrl, uid)
+	var lastInsertID int
 
-	fmt.Println(data)
+	queryErr := db.QueryRow(query, nr.Title, nr.Description, nr.Status, nr.Limit, nr.PrototypeUrl, uid).Scan(&lastInsertID)
 
-	if err != nil {
+	if queryErr != nil {
 		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	fmt.Println(lastInsertID)
+
+	if len(nr.Questions) > 0 {
+		questionQuery := "INSERT INTO questions (title, type, research_id, \"index\") VALUES ($1, $2, $3, $4)"
+
+		for _, question := range nr.Questions {
+			_, err := db.Exec(questionQuery, question.Title, question.Type, lastInsertID, question.Index)
+			if err != nil {
+				fmt.Println(err)
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		}
 	}
 
 	res, err := json.Marshal("Successfully created the research")
