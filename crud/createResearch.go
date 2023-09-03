@@ -16,13 +16,6 @@ type Research struct {
 	Questions    []NewQuestion `json:"questions"`
 }
 
-type NewQuestion struct {
-	Title      string `json:"title"`
-	Type       string `json:"type"`
-	ResearchId string `json:"research_id"`
-	Index      int    `json:"index"`
-}
-
 func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	tk := r.Header.Get("Authorization")

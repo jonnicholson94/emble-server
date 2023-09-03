@@ -2,6 +2,7 @@ package crud
 
 import (
 	"emble-server/utils"
+	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -19,7 +20,7 @@ func DeleteResearch(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		http.Error(w, "User's token is invalid", http.StatusUnauthorized)
 		return
 	}
 
@@ -43,6 +44,14 @@ func DeleteResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	res, jsonErr := json.Marshal("Successfully deleted the research")
+
+	if jsonErr != nil {
+		http.Error(w, "Failed to marshal the json to return to the frontend", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
 
 }

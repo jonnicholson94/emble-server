@@ -3,6 +3,7 @@ package crud
 import (
 	"emble-server/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -20,7 +21,7 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		http.Error(w, "User's token is invalid", http.StatusUnauthorized)
 		return
 	}
 
@@ -29,7 +30,7 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&nq)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Failed to process the request, please try again", http.StatusBadRequest)
 		return
 	}
 
@@ -39,12 +40,14 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 
 	data, err := db.Exec(insertQuery, nq.Title, nq.Type, nq.ResearchId, nq.Index)
 
+	fmt.Println(data)
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Failed to save data, please try again", http.StatusInternalServerError)
 		return
 	}
 
-	res, err := json.Marshal(data)
+	res, err := json.Marshal("Successfully created the question")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)

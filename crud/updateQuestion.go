@@ -14,7 +14,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		http.Error(w, "User's token is invalid", http.StatusUnauthorized)
 		return
 	}
 
@@ -26,7 +26,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		fmt.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "Unable to process the request, please try again", http.StatusBadRequest)
 		return
 	}
 
@@ -50,10 +50,12 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	_, err = db.Exec(updateQuery, values...)
 	if err != nil {
 		fmt.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Unable to save the changes, please try again", http.StatusInternalServerError)
 		return
 	}
 
-	// Return success response
-	w.WriteHeader(http.StatusOK)
+	res, err := json.Marshal("Successfully saved your changes")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
 }
