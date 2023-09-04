@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 )
 
 type FinalResearch struct {
@@ -16,7 +17,10 @@ type FinalResearch struct {
 	Limit        int        `json:"limit"`
 	PrototypeUrl string     `json:"prototype_url"`
 	UserId       string     `json:"user_id"`
+	FirstName    string     `json:"first_name"`
+	LastName     string     `json:"last_name"`
 	Questions    []Question `json:"questions"`
+	Comments     []Comment  `json:"comments"`
 }
 
 type JoinedResearch struct {
@@ -32,6 +36,13 @@ type JoinedResearch struct {
 	QuestionType       sql.NullString `json:"question_type"`
 	QuestionResearchId sql.NullString `json:"question_research_id"`
 	QuestionIndex      sql.NullInt32  `json:"question_index"`
+	CommentID          sql.NullString `json:"comment_id"`
+	CommentContent     sql.NullString `json:"comment_content"`
+	CommentUserId      sql.NullString `json:"comment_user_id"`
+	CommentTimestamp   sql.NullInt64  `json:"comment_timestamp"`
+	CommentResearchId  sql.NullString `json:"comment_research_id"`
+	FirstName          string         `json:"first_name"`
+	LastName           string         `json:"last_name"`
 }
 
 type Question struct {
@@ -40,6 +51,19 @@ type Question struct {
 	QuestionType       string `json:"question_type"`
 	QuestionResearchId string `json:"question_research_id"`
 	QuestionIndex      int    `json:"question_index"`
+}
+
+type Comment struct {
+	CommentID         string `json:"comment_id"`
+	CommentContent    string `json:"comment_content"`
+	CommentUserId     string `json:"comment_user_id"`
+	CommentTimestamp  int    `json:"comment_timestamp"`
+	CommentResearchId string `json:"comment_research_id"`
+}
+
+type User struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
@@ -56,17 +80,19 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 	id := r.URL.Query().Get("id")
 
+	num, err := strconv.Atoi(id)
+
 	// Initialise the database
 
 	db := utils.GetDB()
 
 	// Define the query
 
-	query := "SELECT research.*, questions.* FROM research LEFT JOIN questions ON research.id = questions.research_id WHERE research.id = $1;"
+	query := "SELECT research.*, questions.*, comments.*, users.first_name, users.last_name FROM research LEFT JOIN questions ON research.id = questions.research_id LEFT JOIN comments ON research.id = comments.research_id LEFT JOIN users ON research.user_id = users.id WHERE research.id = $1;"
 
 	var finalResearch FinalResearch
 
-	rows, err := db.Query(query, id)
+	rows, err := db.Query(query, num)
 
 	if err != nil {
 		fmt.Println(err.Error())
@@ -90,6 +116,13 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			&result.QuestionType,
 			&result.QuestionResearchId,
 			&result.QuestionIndex,
+			&result.CommentID,
+			&result.CommentContent,
+			&result.CommentUserId,
+			&result.CommentTimestamp,
+			&result.CommentResearchId,
+			&result.FirstName,
+			&result.LastName,
 		)
 
 		// Append the question to the associated research's Questions slice
@@ -99,6 +132,14 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			QuestionType:       result.QuestionType.String,
 			QuestionResearchId: result.QuestionResearchId.String,
 			QuestionIndex:      int(result.QuestionIndex.Int32),
+		}
+
+		comment := Comment{
+			CommentID:         result.CommentID.String,
+			CommentContent:    result.CommentContent.String,
+			CommentUserId:     result.CommentUserId.String,
+			CommentTimestamp:  int(result.CommentTimestamp.Int64),
+			CommentResearchId: result.CommentResearchId.String,
 		}
 
 		if scanErr != nil {
@@ -115,9 +156,36 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			finalResearch.Status = result.Status
 			finalResearch.PrototypeUrl = result.PrototypeUrl
 			finalResearch.UserId = result.UserId
+			finalResearch.FirstName = result.FirstName
+			finalResearch.LastName = result.LastName
+		}
+
+		// Check if the question already exists in finalResearch
+		questionExists := false
+		for _, q := range finalResearch.Questions {
+			if q.QuestionID == question.QuestionID {
+				questionExists = true
+				break
+			}
+		}
+
+		// If the question doesn't exist, append it to finalResearch
+		if !questionExists {
 			finalResearch.Questions = append(finalResearch.Questions, question)
-		} else {
-			finalResearch.Questions = append(finalResearch.Questions, question)
+		}
+
+		// Check if the comment already exists in finalResearch
+		commentExists := false
+		for _, c := range finalResearch.Comments {
+			if c.CommentID == comment.CommentID {
+				commentExists = true
+				break
+			}
+		}
+
+		// If the comment doesn't exist, append it to finalResearch
+		if !commentExists {
+			finalResearch.Comments = append(finalResearch.Comments, comment)
 		}
 
 	}
