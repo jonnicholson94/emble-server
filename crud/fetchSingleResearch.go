@@ -68,8 +68,6 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 	rows, err := db.Query(query, id)
 
-	fmt.Println(rows)
-
 	if err != nil {
 		fmt.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusBadRequest)
