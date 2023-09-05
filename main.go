@@ -29,6 +29,7 @@ func main() {
 	mux.HandleFunc("/delete-research", crud.DeleteResearch)
 	mux.HandleFunc("/create-comment", crud.CreateComment)
 	mux.HandleFunc("/edit-comment", crud.EditComment)
+	mux.HandleFunc("/delete-comment", crud.DeleteComment)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 

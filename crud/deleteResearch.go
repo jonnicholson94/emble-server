@@ -36,6 +36,14 @@ func DeleteResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, commErr := db.Exec("DELETE FROM comments WHERE research_id = $1", id)
+
+	if commErr != nil {
+		fmt.Println(commErr.Error())
+		http.Error(w, "Failed to delete the comments associated with the research", http.StatusBadRequest)
+		return
+	}
+
 	_, resErr := db.Exec("DELETE FROM research WHERE id = $1", id)
 
 	if resErr != nil {
