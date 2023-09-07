@@ -24,13 +24,13 @@ type FinalResearch struct {
 }
 
 type JoinedResearch struct {
-	ID                 string         `json:"ID"`
-	Title              string         `json:"title"`
-	Description        string         `json:"description"`
-	Status             string         `json:"status"`
-	Limit              int            `json:"limit"`
-	PrototypeUrl       string         `json:"prototype_url"`
-	UserId             string         `json:"user_id"`
+	ID                 string         `json:"research_id"`
+	Title              string         `json:"research_title"`
+	Description        string         `json:"research_description"`
+	Status             string         `json:"research_status"`
+	Limit              int            `json:"research_limit"`
+	PrototypeUrl       string         `json:"research_prototype_url"`
+	UserId             string         `json:"research_user_id"`
 	QuestionID         sql.NullString `json:"question_id"`
 	QuestionTitle      sql.NullString `json:"question_title"`
 	QuestionType       sql.NullString `json:"question_type"`
@@ -41,16 +41,22 @@ type JoinedResearch struct {
 	CommentUserId      sql.NullString `json:"comment_user_id"`
 	CommentTimestamp   sql.NullInt64  `json:"comment_timestamp"`
 	CommentResearchId  sql.NullString `json:"comment_research_id"`
+	OptionID           sql.NullString `json:"option_id"`
+	OptionContent      sql.NullString `json:"option_content"`
+	OptionQuestionId   sql.NullString `json:"option_question_id"`
+	OptionIndex        sql.NullInt32  `json:"option_index"`
+	OptionResearchId   sql.NullString `json:"option_research_id"`
 	FirstName          string         `json:"first_name"`
 	LastName           string         `json:"last_name"`
 }
 
 type Question struct {
-	QuestionID         string `json:"question_id"`
-	QuestionTitle      string `json:"question_title"`
-	QuestionType       string `json:"question_type"`
-	QuestionResearchId string `json:"question_research_id"`
-	QuestionIndex      int    `json:"question_index"`
+	QuestionID         string          `json:"question_id"`
+	QuestionTitle      string          `json:"question_title"`
+	QuestionType       string          `json:"question_type"`
+	QuestionResearchId string          `json:"question_research_id"`
+	QuestionIndex      int             `json:"question_index"`
+	QuestionOptions    []FetchedOption `json:"question_options"`
 }
 
 type Comment struct {
@@ -59,6 +65,14 @@ type Comment struct {
 	CommentUserId     string `json:"comment_user_id"`
 	CommentTimestamp  int    `json:"comment_timestamp"`
 	CommentResearchId string `json:"comment_research_id"`
+}
+
+type FetchedOption struct {
+	OptionID         string `json:"option_id"`
+	OptionContent    string `json:"option_content"`
+	OptionQuestionId string `json:"option_question_id"`
+	OptionIndex      int    `json:"option_index"`
+	OptionResearchId string `json:"option_research_id"`
 }
 
 type User struct {
@@ -88,7 +102,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 	// Define the query
 
-	query := "SELECT research.*, questions.*, comments.*, users.first_name, users.last_name FROM research LEFT JOIN questions ON research.id = questions.research_id LEFT JOIN comments ON research.id = comments.research_id LEFT JOIN users ON research.user_id = users.id WHERE research.id = $1;"
+	query := "SELECT research.*, questions.*, comments.*, options.*, users.first_name, users.last_name FROM research LEFT JOIN questions ON research.research_id = questions.question_research_id LEFT JOIN comments ON research.research_id = comments.comment_research_id LEFT JOIN options ON research.research_id = options.option_research_id LEFT JOIN users ON research.research_user_id = users.id WHERE research.research_id = $1;"
 
 	var finalResearch FinalResearch
 
@@ -121,6 +135,11 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			&result.CommentUserId,
 			&result.CommentTimestamp,
 			&result.CommentResearchId,
+			&result.OptionID,
+			&result.OptionContent,
+			&result.OptionQuestionId,
+			&result.OptionIndex,
+			&result.OptionResearchId,
 			&result.FirstName,
 			&result.LastName,
 		)
@@ -140,6 +159,14 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			CommentUserId:     result.CommentUserId.String,
 			CommentTimestamp:  int(result.CommentTimestamp.Int64),
 			CommentResearchId: result.CommentResearchId.String,
+		}
+
+		option := FetchedOption{
+			OptionID:         result.OptionID.String,
+			OptionContent:    result.OptionContent.String,
+			OptionQuestionId: result.OptionQuestionId.String,
+			OptionIndex:      int(result.OptionIndex.Int32),
+			OptionResearchId: result.OptionResearchId.String,
 		}
 
 		if scanErr != nil {
@@ -163,6 +190,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 		// Check if the question already exists in finalResearch
 		questionExists := false
 		for _, q := range finalResearch.Questions {
+
 			if q.QuestionID == question.QuestionID {
 				questionExists = true
 				break
@@ -172,6 +200,24 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 		// If the question doesn't exist, append it to finalResearch
 		if !questionExists {
 			finalResearch.Questions = append(finalResearch.Questions, question)
+		}
+
+		for i, q := range finalResearch.Questions {
+			if q.QuestionID == question.QuestionID && q.QuestionID == option.OptionQuestionId {
+				// Check if the option already exists in QuestionOptions
+				optionExists := false
+				for _, o := range q.QuestionOptions {
+					if o.OptionID == option.OptionID {
+						optionExists = true
+						break
+					}
+				}
+
+				// If the option doesn't exist, append it to QuestionOptions
+				if !optionExists {
+					finalResearch.Questions[i].QuestionOptions = append(finalResearch.Questions[i].QuestionOptions, option)
+				}
+			}
 		}
 
 		// Check if the comment already exists in finalResearch

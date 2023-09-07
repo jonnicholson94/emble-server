@@ -38,7 +38,7 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "SELECT * FROM research WHERE user_id = $1"
+	query := "SELECT * FROM research WHERE research_user_id = $1"
 
 	rows, err := db.Query(query, uid)
 
