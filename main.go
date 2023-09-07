@@ -24,12 +24,13 @@ func main() {
 	mux.HandleFunc("/create-question", crud.CreateQuestion)
 	mux.HandleFunc("/edit-item", crud.EditItem)
 	mux.HandleFunc("/update-question-order", crud.UpdateQuestionOrder)
-	mux.HandleFunc("/add-options", crud.AddOption)
+	mux.HandleFunc("/create-option", crud.CreateOption)
 	mux.HandleFunc("/edit-question", crud.UpdateQuestion)
 	mux.HandleFunc("/delete-research", crud.DeleteResearch)
 	mux.HandleFunc("/create-comment", crud.CreateComment)
 	mux.HandleFunc("/edit-comment", crud.EditComment)
 	mux.HandleFunc("/delete-comment", crud.DeleteComment)
+	mux.HandleFunc("/survey", crud.FetchSurveyDetails)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 
