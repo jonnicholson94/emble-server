@@ -14,7 +14,17 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, "User's token is invalid", http.StatusUnauthorized)
+		customErr := CustomError{
+			Message: "Invalid token",
+			Status:  http.StatusUnauthorized,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errJSON)
 		return
 	}
 
@@ -25,8 +35,17 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&body)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, "Unable to process the request, please try again", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -49,8 +68,17 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 
 	_, err = db.Exec(updateQuery, values...)
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, "Unable to save the changes, please try again", http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 

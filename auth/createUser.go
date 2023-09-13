@@ -27,6 +27,11 @@ type InsertedUser struct {
 	LastName  string `json:"last_name"`
 }
 
+type CustomError struct {
+	Message string `json:"message"`
+	Status  int32  `json:"status"`
+}
+
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Pull data from request body
@@ -36,14 +41,34 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
-		http.Error(w, "Incorrect details provided", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Error decoding request body",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
 	validPass := utils.ValidatePassword(user.Password)
 
 	if !validPass {
-		http.Error(w, "Invalid password provided. Make sure you enter between 6 and 20 characters, and the password contains at least one number and special character.", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Invalid password provided",
+			Status:  http.StatusBadRequest,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errJSON)
 		return
 	}
 
@@ -52,7 +77,17 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 
 	if err != nil {
-		http.Error(w, "Failed to hash password", http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to hash password",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -69,7 +104,17 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	existingError := db.QueryRow(existingQuery, user.Email).Scan(&existingUser.Email)
 
 	if existingError == nil {
-		http.Error(w, "User already exists", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "User already exists",
+			Status:  http.StatusBadRequest,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -94,7 +139,18 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		fmt.Println(err.Error())
+		customErr := CustomError{
+			Message: "Error querying database",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
+		return
 	}
 
 	// Generate JWT
@@ -102,18 +158,23 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.CreateToken(insertedUser.ID, insertedUser.FirstName, insertedUser.LastName)
 
 	if err != nil {
-		http.Error(w, "There's been an issue generating your token", http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to create user token",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
 	// Return JWT to FE
 
-	json, err := json.Marshal(token)
-
-	if err != nil {
-		http.Error(w, "There's been an issue sending your token", http.StatusInternalServerError)
-		return
-	}
+	json, _ := json.Marshal(token)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)

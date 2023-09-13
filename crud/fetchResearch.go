@@ -3,7 +3,6 @@ package crud
 import (
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -24,15 +23,34 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(token)
 
 	if tokenErr != nil {
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		customErr := CustomError{
+			Message: "Invalid token",
+			Status:  http.StatusUnauthorized,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errJSON)
 		return
 	}
 
 	uid, err := utils.DecodeTokenId(token)
 
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -43,8 +61,17 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(query, uid)
 
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -64,8 +91,17 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 		)
 
 		if err != nil {
-			fmt.Println(err)
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			customErr := CustomError{
+				Message: "Failed to process request",
+				Status:  http.StatusInternalServerError,
+			}
+
+			// Convert the error to JSON
+			errJSON, _ := json.Marshal(customErr)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(errJSON)
 			return
 		}
 
@@ -75,8 +111,17 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(results)
 
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 

@@ -23,7 +23,17 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		customErr := CustomError{
+			Message: "Invalid token",
+			Status:  http.StatusUnauthorized,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errJSON)
 		return
 	}
 
@@ -32,8 +42,17 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&nr)
 
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "There's been an error decoding the request body. Please try again.", http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to decode body",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -48,8 +67,17 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 	uid, err := utils.DecodeTokenId(tk)
 
 	if err != nil {
-		fmt.Println(err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusBadRequest,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -58,8 +86,17 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 	queryErr := db.QueryRow(query, nr.Title, nr.Description, nr.Status, nr.Limit, nr.PrototypeUrl, uid).Scan(&lastInsertID)
 
 	if queryErr != nil {
-		fmt.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -71,8 +108,17 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 		for _, question := range nr.Questions {
 			_, err := db.Exec(questionQuery, question.Title, question.Type, lastInsertID, question.Index)
 			if err != nil {
-				fmt.Println(err)
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				customErr := CustomError{
+					Message: "Failed to process request",
+					Status:  http.StatusInternalServerError,
+				}
+
+				// Convert the error to JSON
+				errJSON, _ := json.Marshal(customErr)
+
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write(errJSON)
 				return
 			}
 		}

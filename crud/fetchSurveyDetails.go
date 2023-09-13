@@ -4,33 +4,38 @@ import (
 	"database/sql"
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 )
 
 type FinalSurvey struct {
-	ID           string           `json:"id"`
-	Status       string           `json:"status"`
-	PrototypeUrl string           `json:"prototype_url"`
-	Questions    []SurveyQuestion `json:"questions"`
+	ResearchID           string           `json:"id"`
+	ResearchStatus       string           `json:"status"`
+	ResearchPrototypeUrl string           `json:"prototype_url"`
+	ResearchQuestions    []SurveyQuestion `json:"questions"`
 }
 
 type JoinedSurvey struct {
-	ID            string         `json:"id"`
-	Status        string         `json:"status"`
-	PrototypeUrl  string         `json:"prototype_url"`
-	QuestionID    sql.NullString `json:"question_id"`
-	QuestionTitle sql.NullString `json:"question_title"`
-	QuestionType  sql.NullString `json:"question_type"`
-	QuestionIndex sql.NullInt32  `json:"question_index"`
+	ResearchID           string         `json:"id"`
+	ResearchStatus       string         `json:"status"`
+	ResearchPrototypeUrl string         `json:"prototype_url"`
+	QuestionID           sql.NullString `json:"question_id"`
+	QuestionTitle        sql.NullString `json:"question_title"`
+	QuestionType         sql.NullString `json:"question_type"`
+	QuestionIndex        sql.NullInt32  `json:"question_index"`
+	OptionID             sql.NullString `json:"option_id"`
+	OptionContent        sql.NullString `json:"option_content"`
+	OptionQuestionId     sql.NullString `json:"option_question_id"`
+	OptionIndex          sql.NullInt32  `json:"option_index"`
+	OptionResearchId     sql.NullString `json:"option_research_id"`
 }
 
 type SurveyQuestion struct {
-	ID    string `json:"id"`
-	Title string `json:"title"`
-	Type  string `json:"type"`
-	Index int32  `json:"index"`
+	QuestionID      string          `json:"question_id"`
+	QuestionTitle   string          `json:"question_title"`
+	QuestionType    string          `json:"question_type"`
+	QuestionIndex   int32           `json:"question_index"`
+	QuestionOptions []FetchedOption `json:"question_options"`
 }
 
 func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
@@ -40,8 +45,17 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 	num, err := strconv.Atoi(id)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -49,15 +63,24 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "SELECT research.id, research.status, research.prototype_url, questions.id, questions.title, questions.type, questions.index FROM research LEFT JOIN questions ON research.id = questions.research_id WHERE research.id = $1"
+	query := "SELECT research.research_id, research.research_status, research.research_prototype_url, questions.question_id, questions.question_title, questions.question_type, questions.question_index, options.* FROM research LEFT JOIN questions ON research.research_id = questions.question_research_id LEFT JOIN options ON research.research_id = options.option_research_id WHERE research.research_id = $1"
 
 	var finalSurvey FinalSurvey
 
 	rows, err := db.Query(query, num)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -65,38 +88,60 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 		var result JoinedSurvey
 
 		scanErr := rows.Scan(
-			&result.ID,
-			&result.Status,
-			&result.PrototypeUrl,
+			&result.ResearchID,
+			&result.ResearchStatus,
+			&result.ResearchPrototypeUrl,
 			&result.QuestionID,
 			&result.QuestionTitle,
 			&result.QuestionType,
 			&result.QuestionIndex,
+			&result.OptionID,
+			&result.OptionContent,
+			&result.OptionQuestionId,
+			&result.OptionIndex,
+			&result.OptionResearchId,
 		)
 
 		if scanErr != nil {
-			fmt.Println(scanErr)
-			http.Error(w, scanErr.Error(), http.StatusInternalServerError)
+			customErr := CustomError{
+				Message: "Failed to process request",
+				Status:  http.StatusInternalServerError,
+			}
+
+			// Convert the error to JSON
+			errJSON, _ := json.Marshal(customErr)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(errJSON)
 			return
 		}
 
 		question := SurveyQuestion{
-			ID:    result.QuestionID.String,
-			Title: result.QuestionTitle.String,
-			Type:  result.QuestionType.String,
-			Index: result.QuestionIndex.Int32,
+			QuestionID:    result.QuestionID.String,
+			QuestionTitle: result.QuestionTitle.String,
+			QuestionType:  result.QuestionType.String,
+			QuestionIndex: result.QuestionIndex.Int32,
 		}
 
-		if finalSurvey.ID != result.ID {
-			finalSurvey.ID = result.ID
-			finalSurvey.Status = result.Status
-			finalSurvey.PrototypeUrl = result.PrototypeUrl
+		option := FetchedOption{
+			OptionID:         result.OptionID.String,
+			OptionContent:    result.OptionContent.String,
+			OptionQuestionId: result.OptionQuestionId.String,
+			OptionIndex:      int(result.OptionIndex.Int32),
+			OptionResearchId: result.OptionResearchId.String,
+		}
+
+		if finalSurvey.ResearchID != result.ResearchID {
+			finalSurvey.ResearchID = result.ResearchID
+			finalSurvey.ResearchStatus = result.ResearchStatus
+			finalSurvey.ResearchPrototypeUrl = result.ResearchPrototypeUrl
 		}
 
 		// Check if the question already exists in finalResearch
 		questionExists := false
-		for _, q := range finalSurvey.Questions {
-			if q.ID == question.ID {
+		for _, q := range finalSurvey.ResearchQuestions {
+			if q.QuestionID == question.QuestionID {
 				questionExists = true
 				break
 			}
@@ -104,17 +149,30 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 
 		// If the question doesn't exist, append it to finalResearch
 		if !questionExists {
-			finalSurvey.Questions = append(finalSurvey.Questions, question)
+			finalSurvey.ResearchQuestions = append(finalSurvey.ResearchQuestions, question)
 		}
+
+		for i, q := range finalSurvey.ResearchQuestions {
+			if q.QuestionID == question.QuestionID && q.QuestionID == option.OptionQuestionId {
+				// Check if the option already exists in QuestionOptions
+				optionExists := false
+				for _, o := range q.QuestionOptions {
+					if o.OptionID == option.OptionID {
+						optionExists = true
+						break
+					}
+				}
+
+				// If the option doesn't exist, append it to QuestionOptions
+				if !optionExists {
+					finalSurvey.ResearchQuestions[i].QuestionOptions = append(finalSurvey.ResearchQuestions[i].QuestionOptions, option)
+				}
+			}
+		}
+
 	}
 
-	json, err := json.Marshal(finalSurvey)
-
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "There's been a problem processing the json", http.StatusInternalServerError)
-		return
-	}
+	json, _ := json.Marshal(finalSurvey)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)

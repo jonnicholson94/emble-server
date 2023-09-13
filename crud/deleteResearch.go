@@ -3,7 +3,6 @@ package crud
 import (
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -20,7 +19,17 @@ func DeleteResearch(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, "User's token is invalid", http.StatusUnauthorized)
+		customErr := CustomError{
+			Message: "Invalid token",
+			Status:  http.StatusUnauthorized,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errJSON)
 		return
 	}
 
@@ -31,31 +40,68 @@ func DeleteResearch(w http.ResponseWriter, r *http.Request) {
 	_, queErr := db.Exec("DELETE FROM questions WHERE research_id = $1", id)
 
 	if queErr != nil {
-		fmt.Println(queErr.Error())
-		http.Error(w, "Failed to delete the questions associated with the research", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
 	_, commErr := db.Exec("DELETE FROM comments WHERE research_id = $1", id)
 
 	if commErr != nil {
-		fmt.Println(commErr.Error())
-		http.Error(w, "Failed to delete the comments associated with the research", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
 	_, resErr := db.Exec("DELETE FROM research WHERE id = $1", id)
 
 	if resErr != nil {
-		fmt.Println(resErr.Error())
-		http.Error(w, "Failed to delete the research", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
 	res, jsonErr := json.Marshal("Successfully deleted the research")
 
 	if jsonErr != nil {
-		http.Error(w, "Failed to marshal the json to return to the frontend", http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 

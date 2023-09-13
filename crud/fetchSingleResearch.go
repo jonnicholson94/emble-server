@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -87,8 +86,17 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		fmt.Println(tokenErr)
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		customErr := CustomError{
+			Message: "Invalid token",
+			Status:  http.StatusUnauthorized,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errJSON)
 		return
 	}
 
@@ -109,8 +117,17 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(query, num)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -170,8 +187,17 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if scanErr != nil {
-			fmt.Println(scanErr)
-			http.Error(w, scanErr.Error(), http.StatusInternalServerError)
+			customErr := CustomError{
+				Message: "Failed to process request",
+				Status:  http.StatusInternalServerError,
+			}
+
+			// Convert the error to JSON
+			errJSON, _ := json.Marshal(customErr)
+
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(errJSON)
 			return
 		}
 
@@ -236,13 +262,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	json, err := json.Marshal(finalResearch)
-
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "There's been a problem processing the json", http.StatusInternalServerError)
-		return
-	}
+	json, _ := json.Marshal(finalResearch)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)

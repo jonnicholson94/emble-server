@@ -3,7 +3,6 @@ package crud
 import (
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -17,7 +16,17 @@ func EditComment(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		customErr := CustomError{
+			Message: "Invalid token",
+			Status:  http.StatusUnauthorized,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errJSON)
 		return
 	}
 
@@ -28,8 +37,17 @@ func EditComment(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&body)
 
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
@@ -40,8 +58,17 @@ func EditComment(w http.ResponseWriter, r *http.Request) {
 	_, dbErr := db.Exec(query, body.Content, id)
 
 	if dbErr != nil {
-		fmt.Println(dbErr.Error())
-		http.Error(w, dbErr.Error(), http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 

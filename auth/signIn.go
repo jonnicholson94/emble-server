@@ -29,7 +29,18 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&user)
 
 	if err != nil {
-		http.Error(w, "There was an error decoding the request body", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Failed to decode body",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
+		return
 	}
 
 	db := utils.GetDB()
@@ -47,14 +58,34 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if queryError != nil {
-		http.Error(w, "No account with this email exists", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "No user with this email exists",
+			Status:  http.StatusBadRequest,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errJSON)
 		return
 	}
 
 	hashErr := bcrypt.CompareHashAndPassword([]byte(fetchedUser.Password), []byte(user.Password))
 
 	if hashErr != nil {
-		http.Error(w, "Invalid credentials", http.StatusBadRequest)
+		customErr := CustomError{
+			Message: "Invalid email or password",
+			Status:  http.StatusBadRequest,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errJSON)
 		return
 	}
 
@@ -65,18 +96,23 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 	token, err := utils.CreateToken(fetchedUser.ID, fetchedUser.FirstName, fetchedUser.LastName)
 
 	if err != nil {
-		http.Error(w, "There's been an issue generating your token", http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Error creating token",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 
 	// Return JWT to FE
 
-	json, err := json.Marshal(token)
-
-	if err != nil {
-		http.Error(w, "There's been an issue sending your token", http.StatusInternalServerError)
-		return
-	}
+	json, _ := json.Marshal(token)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(json)

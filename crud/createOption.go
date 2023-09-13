@@ -20,7 +20,17 @@ func CreateOption(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
-		http.Error(w, tokenErr.Error(), http.StatusUnauthorized)
+		customErr := CustomError{
+			Message: "Invalid token",
+			Status:  http.StatusUnauthorized,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errJSON)
 		return
 	}
 
@@ -41,8 +51,17 @@ func CreateOption(w http.ResponseWriter, r *http.Request) {
 	_, insertErr := db.Exec(query, option.OptionContent, option.OptionQuestionID, option.OptionIndex, option.OptionResearchID)
 
 	if insertErr != nil {
-		fmt.Println(insertErr.Error())
-		http.Error(w, insertErr.Error(), http.StatusInternalServerError)
+		customErr := CustomError{
+			Message: "Failed to insert the option",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
 		return
 	}
 

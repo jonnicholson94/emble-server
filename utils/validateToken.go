@@ -38,8 +38,8 @@ func ValidateToken(tokenString string) error {
 	currentTime := time.Now()
 
 	if currentTime.After(expiryTime) {
-		fmt.Println("Token has expired")
-		return errors.New("Token has expired. Log the user out")
+		fmt.Println("Auth token expired")
+		return errors.New("Auth token expired")
 	}
 
 	return nil
