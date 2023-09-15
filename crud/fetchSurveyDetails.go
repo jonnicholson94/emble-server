@@ -5,7 +5,6 @@ import (
 	"emble-server/utils"
 	"encoding/json"
 	"net/http"
-	"strconv"
 )
 
 type FinalSurvey struct {
@@ -42,23 +41,6 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 
 	id := r.URL.Query().Get("id")
 
-	num, err := strconv.Atoi(id)
-
-	if err != nil {
-		customErr := CustomError{
-			Message: "Failed to process request",
-			Status:  http.StatusInternalServerError,
-		}
-
-		// Convert the error to JSON
-		errJSON, _ := json.Marshal(customErr)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errJSON)
-		return
-	}
-
 	// Initialise the database
 
 	db := utils.GetDB()
@@ -67,7 +49,7 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 
 	var finalSurvey FinalSurvey
 
-	rows, err := db.Query(query, num)
+	rows, err := db.Query(query, id)
 
 	if err != nil {
 		customErr := CustomError{
