@@ -8,12 +8,13 @@ import (
 )
 
 type Research struct {
-	Title        string        `json:"title"`
-	Description  string        `json:"description"`
-	Status       string        `json:"status"`
-	Limit        int           `json:"limit"`
-	PrototypeUrl string        `json:"prototype_url"`
-	Questions    []NewQuestion `json:"questions"`
+	ResearchId           string        `json:"research_id"`
+	ResearchTitle        string        `json:"research_title"`
+	ResearchDescription  string        `json:"research_description"`
+	ResearchStatus       string        `json:"research_status"`
+	ResearchLimit        int           `json:"research_limit"`
+	ResearchPrototypeUrl string        `json:"research_prototype_url"`
+	ResearchQuestions    []NewQuestion `json:"research_questions"`
 }
 
 func CreateResearch(w http.ResponseWriter, r *http.Request) {
@@ -23,6 +24,7 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
+		fmt.Println(tokenErr.Error())
 		customErr := CustomError{
 			Message: "Invalid token",
 			Status:  http.StatusUnauthorized,
@@ -42,6 +44,7 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&nr)
 
 	if err != nil {
+		fmt.Println(err.Error())
 		customErr := CustomError{
 			Message: "Failed to decode body",
 			Status:  http.StatusInternalServerError,
@@ -60,13 +63,14 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "INSERT INTO research (title, description, status, \"limit\", prototype_url, user_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
+	query := "INSERT INTO research (research_id, research_title, research_description, research_status, research_limit, research_prototype_url, research_user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)"
 
 	// Decode the token to get the user id
 
 	uid, err := utils.DecodeTokenId(tk)
 
 	if err != nil {
+		fmt.Println(err.Error())
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusBadRequest,
@@ -81,13 +85,12 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var lastInsertID int
-
-	queryErr := db.QueryRow(query, nr.Title, nr.Description, nr.Status, nr.Limit, nr.PrototypeUrl, uid).Scan(&lastInsertID)
+	_, queryErr := db.Exec(query, nr.ResearchId, nr.ResearchTitle, nr.ResearchDescription, nr.ResearchStatus, nr.ResearchLimit, nr.ResearchPrototypeUrl, uid)
 
 	if queryErr != nil {
+		fmt.Println(queryErr)
 		customErr := CustomError{
-			Message: "Failed to process request",
+			Message: "Query error",
 			Status:  http.StatusInternalServerError,
 		}
 
@@ -100,14 +103,15 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(lastInsertID)
+	// fmt.Println(lastInsertID)
 
-	if len(nr.Questions) > 0 {
-		questionQuery := "INSERT INTO questions (title, type, research_id, \"index\") VALUES ($1, $2, $3, $4)"
+	if len(nr.ResearchQuestions) > 0 {
+		questionQuery := "INSERT INTO questions (question_id, question_title, question_type, question_research_id, question_index) VALUES ($1, $2, $3, $4, $5)"
 
-		for _, question := range nr.Questions {
-			_, err := db.Exec(questionQuery, question.Title, question.Type, lastInsertID, question.Index)
+		for _, question := range nr.ResearchQuestions {
+			_, err := db.Exec(questionQuery, question.QuestionId, question.QuestionTitle, question.QuestionType, nr.ResearchId, question.QuestionIndex)
 			if err != nil {
+				fmt.Println(err)
 				customErr := CustomError{
 					Message: "Failed to process request",
 					Status:  http.StatusInternalServerError,
@@ -121,6 +125,29 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 				w.Write(errJSON)
 				return
 			}
+
+			if len(question.QuestionOptions) > 0 {
+				optionQuery := "INSERT INTO options (option_id, option_content, option_question_id, option_index, option_research_id) VALUES ($1, $2, $3, $4, $5)"
+				for _, option := range question.QuestionOptions {
+					_, err := db.Exec(optionQuery, option.OptionId, option.OptionContent, option.OptionQuestionID, option.OptionIndex, nr.ResearchId)
+					if err != nil {
+						fmt.Println(err)
+						customErr := CustomError{
+							Message: "Failed to process request",
+							Status:  http.StatusInternalServerError,
+						}
+
+						// Convert the error to JSON
+						errJSON, _ := json.Marshal(customErr)
+
+						w.Header().Set("Content-Type", "application/json")
+						w.WriteHeader(http.StatusInternalServerError)
+						w.Write(errJSON)
+						return
+					}
+				}
+			}
+
 		}
 	}
 

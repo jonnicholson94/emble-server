@@ -5,7 +5,6 @@ import (
 	"emble-server/utils"
 	"encoding/json"
 	"net/http"
-	"strconv"
 )
 
 type FinalResearch struct {
@@ -102,8 +101,6 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 	id := r.URL.Query().Get("id")
 
-	num, err := strconv.Atoi(id)
-
 	// Initialise the database
 
 	db := utils.GetDB()
@@ -114,7 +111,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 
 	var finalResearch FinalResearch
 
-	rows, err := db.Query(query, num)
+	rows, err := db.Query(query, id)
 
 	if err != nil {
 		customErr := CustomError{

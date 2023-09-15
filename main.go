@@ -33,6 +33,7 @@ func main() {
 	mux.HandleFunc("/survey", crud.FetchSurveyDetails)
 	mux.HandleFunc("/delete-option", crud.DeleteOption)
 	mux.HandleFunc("/delete-question", crud.DeleteQuestion)
+	mux.HandleFunc("/edit-option", crud.EditOption)
 
 	mux.HandleFunc("/ws", ws.Websocket)
 

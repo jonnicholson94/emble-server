@@ -7,7 +7,7 @@ import (
 )
 
 type EditedComment struct {
-	Content string `json:"content"`
+	CommentContent string `json:"comment_content"`
 }
 
 func EditComment(w http.ResponseWriter, r *http.Request) {
@@ -53,9 +53,9 @@ func EditComment(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "UPDATE comments SET content = $1 WHERE id = $2"
+	query := "UPDATE comments SET comment_content = $1 WHERE comment_id = $2"
 
-	_, dbErr := db.Exec(query, body.Content, id)
+	_, dbErr := db.Exec(query, body.CommentContent, id)
 
 	if dbErr != nil {
 		customErr := CustomError{

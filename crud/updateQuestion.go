@@ -35,6 +35,7 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&body)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -62,12 +63,13 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct and execute the query
-	updateQuery := fmt.Sprintf("UPDATE questions SET %s WHERE id = $%d", strings.Join(updateColumns, ", "), i)
+	updateQuery := fmt.Sprintf("UPDATE questions SET %s WHERE question_id = $%d", strings.Join(updateColumns, ", "), i)
 
 	values = append(values, id)
 
 	_, err = db.Exec(updateQuery, values...)
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,

@@ -8,9 +8,10 @@ import (
 )
 
 type NewComment struct {
-	Content    string `json:"content"`
-	ResearchId string `json:"research_id"`
-	Timestamp  int    `json:"timestamp"`
+	CommentId         string `json:"comment_id"`
+	CommentContent    string `json:"comment_content"`
+	CommentResearchId string `json:"comment_research_id"`
+	CommentTimestamp  int    `json:"comment_timestamp"`
 }
 
 type CustomError struct {
@@ -77,13 +78,14 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	insertQuery := "INSERT INTO comments (content, user_id, research_id, timestamp) VALUES ($1, $2, $3, $4)"
+	insertQuery := "INSERT INTO comments (comment_id, comment_content, comment_user_id, comment_research_id, comment_timestamp) VALUES ($1, $2, $3, $4, $5)"
 
 	fmt.Println(nc)
 
-	data, err := db.Exec(insertQuery, nc.Content, uid, nc.ResearchId, nc.Timestamp)
+	data, err := db.Exec(insertQuery, nc.CommentId, nc.CommentContent, uid, nc.CommentResearchId, nc.CommentTimestamp)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Database error",
 			Status:  http.StatusInternalServerError,

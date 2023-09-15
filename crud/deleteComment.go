@@ -31,7 +31,7 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 
 	id := r.URL.Query().Get("id")
 
-	_, err := db.Exec("DELETE FROM comments WHERE id = $1", id)
+	_, err := db.Exec("DELETE FROM comments WHERE comment_id = $1", id)
 
 	if err != nil {
 		customErr := CustomError{

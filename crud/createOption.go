@@ -8,6 +8,7 @@ import (
 )
 
 type Option struct {
+	OptionId         string `json:"option_id"`
 	OptionContent    string `json:"option_content"`
 	OptionQuestionID string `json:"option_question_id"`
 	OptionIndex      int    `json:"option_index"`
@@ -46,11 +47,12 @@ func CreateOption(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "INSERT INTO options (option_content, option_question_id, option_index, option_research_id) VALUES ($1, $2, $3, $4)"
+	query := "INSERT INTO options (option_id, option_content, option_question_id, option_index, option_research_id) VALUES ($1, $2, $3, $4, $5)"
 
-	_, insertErr := db.Exec(query, option.OptionContent, option.OptionQuestionID, option.OptionIndex, option.OptionResearchID)
+	_, insertErr := db.Exec(query, option.OptionId, option.OptionContent, option.OptionQuestionID, option.OptionIndex, option.OptionResearchID)
 
 	if insertErr != nil {
+		fmt.Println(insertErr)
 		customErr := CustomError{
 			Message: "Failed to insert the option",
 			Status:  http.StatusInternalServerError,
