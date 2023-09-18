@@ -8,13 +8,16 @@ import (
 )
 
 type Research struct {
-	ResearchId           string        `json:"research_id"`
-	ResearchTitle        string        `json:"research_title"`
-	ResearchDescription  string        `json:"research_description"`
-	ResearchStatus       string        `json:"research_status"`
-	ResearchLimit        int           `json:"research_limit"`
-	ResearchPrototypeUrl string        `json:"research_prototype_url"`
-	ResearchQuestions    []NewQuestion `json:"research_questions"`
+	ResearchId               string        `json:"research_id"`
+	ResearchTitle            string        `json:"research_title"`
+	ResearchDescription      string        `json:"research_description"`
+	ResearchStatus           string        `json:"research_status"`
+	ResearchLimit            int           `json:"research_limit"`
+	ResearchPrototypeUrl     string        `json:"research_prototype_url"`
+	ResearchIntro            bool          `json:"research_intro"`
+	ResearchIntroTitle       string        `json:"research_intro_title"`
+	ResearchIntroDescription string        `json:"research_intro_description"`
+	ResearchQuestions        []NewQuestion `json:"research_questions"`
 }
 
 func CreateResearch(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +66,7 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "INSERT INTO research (research_id, research_title, research_description, research_status, research_limit, research_prototype_url, research_user_id) VALUES ($1, $2, $3, $4, $5, $6, $7)"
+	query := "INSERT INTO research (research_id, research_title, research_description, research_status, research_limit, research_prototype_url, research_user_id, research_intro, research_intro_title, research_intro_description) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
 
 	// Decode the token to get the user id
 
@@ -85,7 +88,7 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, queryErr := db.Exec(query, nr.ResearchId, nr.ResearchTitle, nr.ResearchDescription, nr.ResearchStatus, nr.ResearchLimit, nr.ResearchPrototypeUrl, uid)
+	_, queryErr := db.Exec(query, nr.ResearchId, nr.ResearchTitle, nr.ResearchDescription, nr.ResearchStatus, nr.ResearchLimit, nr.ResearchPrototypeUrl, uid, nr.ResearchIntro, nr.ResearchIntroTitle, nr.ResearchIntroDescription)
 
 	if queryErr != nil {
 		fmt.Println(queryErr)

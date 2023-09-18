@@ -15,6 +15,7 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
+		fmt.Println(tokenErr)
 		customErr := CustomError{
 			Message: "Invalid token",
 			Status:  http.StatusUnauthorized,
@@ -36,6 +37,7 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&body)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -63,12 +65,13 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Construct and execute the query
-	updateQuery := fmt.Sprintf("UPDATE research SET %s WHERE id = $%d", strings.Join(updateColumns, ", "), i)
+	updateQuery := fmt.Sprintf("UPDATE research SET %s WHERE research_id = $%d", strings.Join(updateColumns, ", "), i)
 
 	values = append(values, id)
 
 	_, err = db.Exec(updateQuery, values...)
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -83,6 +86,8 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return success response
-	w.WriteHeader(http.StatusOK)
+	res, err := json.Marshal("Successfully updated the data")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
 }

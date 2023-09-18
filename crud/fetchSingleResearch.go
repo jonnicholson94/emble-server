@@ -4,31 +4,38 @@ import (
 	"database/sql"
 	"emble-server/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
 type FinalResearch struct {
-	ID           string     `json:"ID"`
-	Title        string     `json:"title"`
-	Description  string     `json:"description"`
-	Status       string     `json:"status"`
-	Limit        int        `json:"limit"`
-	PrototypeUrl string     `json:"prototype_url"`
-	UserId       string     `json:"user_id"`
-	FirstName    string     `json:"first_name"`
-	LastName     string     `json:"last_name"`
-	Questions    []Question `json:"questions"`
-	Comments     []Comment  `json:"comments"`
+	ID               string     `json:"ID"`
+	Title            string     `json:"title"`
+	Description      string     `json:"description"`
+	Status           string     `json:"status"`
+	Limit            int        `json:"limit"`
+	PrototypeUrl     string     `json:"prototype_url"`
+	UserId           string     `json:"user_id"`
+	Intro            bool       `json:"intro"`
+	IntroTitle       string     `json:"intro_title"`
+	IntroDescription string     `json:"intro_description"`
+	FirstName        string     `json:"first_name"`
+	LastName         string     `json:"last_name"`
+	Questions        []Question `json:"questions"`
+	Comments         []Comment  `json:"comments"`
 }
 
 type JoinedResearch struct {
 	ID                 string         `json:"research_id"`
 	Title              string         `json:"research_title"`
-	Description        string         `json:"research_description"`
+	Description        sql.NullString `json:"research_description"`
 	Status             string         `json:"research_status"`
 	Limit              int            `json:"research_limit"`
-	PrototypeUrl       string         `json:"research_prototype_url"`
+	PrototypeUrl       sql.NullString `json:"research_prototype_url"`
 	UserId             string         `json:"research_user_id"`
+	Intro              sql.NullBool   `json:"research_intro"`
+	IntroTitle         sql.NullString `json:"research_intro_title"`
+	IntroDescription   sql.NullString `json:"research_intro_description"`
 	QuestionID         sql.NullString `json:"question_id"`
 	QuestionTitle      sql.NullString `json:"question_title"`
 	QuestionType       sql.NullString `json:"question_type"`
@@ -85,6 +92,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 	tokenErr := utils.ValidateToken(tk)
 
 	if tokenErr != nil {
+		fmt.Println(tokenErr)
 		customErr := CustomError{
 			Message: "Invalid token",
 			Status:  http.StatusUnauthorized,
@@ -114,6 +122,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(query, id)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -139,6 +148,9 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			&result.Limit,
 			&result.PrototypeUrl,
 			&result.UserId,
+			&result.Intro,
+			&result.IntroTitle,
+			&result.IntroDescription,
 			&result.QuestionID,
 			&result.QuestionTitle,
 			&result.QuestionType,
@@ -184,6 +196,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if scanErr != nil {
+			fmt.Println(scanErr)
 			customErr := CustomError{
 				Message: "Failed to process request",
 				Status:  http.StatusInternalServerError,
@@ -201,11 +214,14 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 		if finalResearch.ID != result.ID {
 			finalResearch.ID = result.ID
 			finalResearch.Title = result.Title
-			finalResearch.Description = result.Description
+			finalResearch.Description = result.Description.String
 			finalResearch.Limit = result.Limit
 			finalResearch.Status = result.Status
-			finalResearch.PrototypeUrl = result.PrototypeUrl
+			finalResearch.PrototypeUrl = result.PrototypeUrl.String
 			finalResearch.UserId = result.UserId
+			finalResearch.Intro = result.Intro.Bool
+			finalResearch.IntroTitle = result.IntroTitle.String
+			finalResearch.IntroDescription = result.IntroDescription.String
 			finalResearch.FirstName = result.FirstName
 			finalResearch.LastName = result.LastName
 		}

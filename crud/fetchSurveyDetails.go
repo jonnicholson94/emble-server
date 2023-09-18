@@ -4,29 +4,36 @@ import (
 	"database/sql"
 	"emble-server/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
 type FinalSurvey struct {
-	ResearchID           string           `json:"id"`
-	ResearchStatus       string           `json:"status"`
-	ResearchPrototypeUrl string           `json:"prototype_url"`
-	ResearchQuestions    []SurveyQuestion `json:"questions"`
+	ResearchID               string           `json:"id"`
+	ResearchStatus           string           `json:"status"`
+	ResearchPrototypeUrl     string           `json:"prototype_url"`
+	ResearchIntro            bool             `json:"intro"`
+	ResearchIntroTitle       string           `json:"intro_title"`
+	ResearchIntroDescription string           `json:"intro_description"`
+	ResearchQuestions        []SurveyQuestion `json:"questions"`
 }
 
 type JoinedSurvey struct {
-	ResearchID           string         `json:"id"`
-	ResearchStatus       string         `json:"status"`
-	ResearchPrototypeUrl string         `json:"prototype_url"`
-	QuestionID           sql.NullString `json:"question_id"`
-	QuestionTitle        sql.NullString `json:"question_title"`
-	QuestionType         sql.NullString `json:"question_type"`
-	QuestionIndex        sql.NullInt32  `json:"question_index"`
-	OptionID             sql.NullString `json:"option_id"`
-	OptionContent        sql.NullString `json:"option_content"`
-	OptionQuestionId     sql.NullString `json:"option_question_id"`
-	OptionIndex          sql.NullInt32  `json:"option_index"`
-	OptionResearchId     sql.NullString `json:"option_research_id"`
+	ResearchID               string         `json:"id"`
+	ResearchStatus           string         `json:"status"`
+	ResearchPrototypeUrl     string         `json:"prototype_url"`
+	ResearchIntro            bool           `json:"intro"`
+	ResearchIntroTitle       string         `json:"intro_title"`
+	ResearchIntroDescription string         `json:"intro_description"`
+	QuestionID               sql.NullString `json:"question_id"`
+	QuestionTitle            sql.NullString `json:"question_title"`
+	QuestionType             sql.NullString `json:"question_type"`
+	QuestionIndex            sql.NullInt32  `json:"question_index"`
+	OptionID                 sql.NullString `json:"option_id"`
+	OptionContent            sql.NullString `json:"option_content"`
+	OptionQuestionId         sql.NullString `json:"option_question_id"`
+	OptionIndex              sql.NullInt32  `json:"option_index"`
+	OptionResearchId         sql.NullString `json:"option_research_id"`
 }
 
 type SurveyQuestion struct {
@@ -45,13 +52,14 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "SELECT research.research_id, research.research_status, research.research_prototype_url, questions.question_id, questions.question_title, questions.question_type, questions.question_index, options.* FROM research LEFT JOIN questions ON research.research_id = questions.question_research_id LEFT JOIN options ON research.research_id = options.option_research_id WHERE research.research_id = $1"
+	query := "SELECT research.research_id, research.research_status, research.research_prototype_url, research.research_intro, research.research_intro_title, research.research_intro_description, questions.question_id, questions.question_title, questions.question_type, questions.question_index, options.* FROM research LEFT JOIN questions ON research.research_id = questions.question_research_id LEFT JOIN options ON research.research_id = options.option_research_id WHERE research.research_id = $1"
 
 	var finalSurvey FinalSurvey
 
 	rows, err := db.Query(query, id)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -73,6 +81,9 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 			&result.ResearchID,
 			&result.ResearchStatus,
 			&result.ResearchPrototypeUrl,
+			&result.ResearchIntro,
+			&result.ResearchIntroTitle,
+			&result.ResearchIntroDescription,
 			&result.QuestionID,
 			&result.QuestionTitle,
 			&result.QuestionType,
@@ -85,6 +96,7 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 		)
 
 		if scanErr != nil {
+			fmt.Println(scanErr)
 			customErr := CustomError{
 				Message: "Failed to process request",
 				Status:  http.StatusInternalServerError,
@@ -118,6 +130,9 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 			finalSurvey.ResearchID = result.ResearchID
 			finalSurvey.ResearchStatus = result.ResearchStatus
 			finalSurvey.ResearchPrototypeUrl = result.ResearchPrototypeUrl
+			finalSurvey.ResearchIntro = result.ResearchIntro
+			finalSurvey.ResearchIntroTitle = result.ResearchIntroTitle
+			finalSurvey.ResearchIntroDescription = result.ResearchIntroDescription
 		}
 
 		// Check if the question already exists in finalResearch

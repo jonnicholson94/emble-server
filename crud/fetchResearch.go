@@ -1,19 +1,24 @@
 package crud
 
 import (
+	"database/sql"
 	"emble-server/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
 type FetchedResearch struct {
-	ID           string `json:"id"`
-	Title        string `json:"title"`
-	Description  string `json:"description"`
-	Status       string `json:"status"`
-	Limit        string `json:"limit"`
-	PrototypeUrl string `json:"prototype_url"`
-	UserId       int    `json:"user_id"`
+	ResearchID               string         `json:"research_id"`
+	ResearchTitle            string         `json:"research_title"`
+	ResearchDescription      sql.NullString `json:"research_description"`
+	ResearchStatus           string         `json:"research_status"`
+	ResearchLimit            string         `json:"research_limit"`
+	ResearchPrototypeUrl     sql.NullString `json:"research_prototype_url"`
+	ResearchUserId           int            `json:"research_user_id"`
+	ResearchIntro            sql.NullBool   `json:"research_intro"`
+	ResearchIntroTitle       sql.NullString `json:"research_intro_title"`
+	ResearchIntroDescription sql.NullString `json:"research_intro_description"`
 }
 
 func FetchResearch(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +45,7 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 	uid, err := utils.DecodeTokenId(token)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -61,6 +67,7 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 	rows, err := db.Query(query, uid)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -81,16 +88,20 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 		var result FetchedResearch
 
 		err := rows.Scan(
-			&result.ID,
-			&result.Title,
-			&result.Description,
-			&result.Status,
-			&result.Limit,
-			&result.PrototypeUrl,
-			&result.UserId,
+			&result.ResearchID,
+			&result.ResearchTitle,
+			&result.ResearchDescription,
+			&result.ResearchStatus,
+			&result.ResearchLimit,
+			&result.ResearchPrototypeUrl,
+			&result.ResearchUserId,
+			&result.ResearchIntro,
+			&result.ResearchIntroTitle,
+			&result.ResearchIntroDescription,
 		)
 
 		if err != nil {
+			fmt.Println(err)
 			customErr := CustomError{
 				Message: "Failed to process request",
 				Status:  http.StatusInternalServerError,
@@ -111,6 +122,7 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 	data, err := json.Marshal(results)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,

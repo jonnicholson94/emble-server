@@ -2,6 +2,7 @@ package main
 
 import (
 	"emble-server/auth"
+	"emble-server/beta"
 	"emble-server/crud"
 	"emble-server/utils"
 	"emble-server/ws"
@@ -15,6 +16,8 @@ func main() {
 	utils.Initialise()
 
 	mux := http.NewServeMux()
+
+	mux.HandleFunc("/join-beta", beta.JoinBeta)
 
 	mux.HandleFunc("/create-user", auth.CreateUser)
 	mux.HandleFunc("/sign-in", auth.SignIn)
