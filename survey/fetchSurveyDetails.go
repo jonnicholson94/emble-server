@@ -1,4 +1,4 @@
-package crud
+package survey
 
 import (
 	"database/sql"
@@ -42,6 +42,14 @@ type SurveyQuestion struct {
 	QuestionType    string          `json:"question_type"`
 	QuestionIndex   int32           `json:"question_index"`
 	QuestionOptions []FetchedOption `json:"question_options"`
+}
+
+type FetchedOption struct {
+	OptionID         string `json:"option_id"`
+	OptionContent    string `json:"option_content"`
+	OptionQuestionId string `json:"option_question_id"`
+	OptionIndex      int    `json:"option_index"`
+	OptionResearchId string `json:"option_research_id"`
 }
 
 func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {

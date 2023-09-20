@@ -1,19 +1,22 @@
-package crud
+package research
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
-func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
+func EditItem(w http.ResponseWriter, r *http.Request) {
 
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
+		fmt.Println(tokenErr)
 		customErr := CustomError{
 			Message: "Invalid token",
 			Status:  http.StatusUnauthorized,
@@ -28,14 +31,14 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := utils.GetDB()
+	body := make(map[string]interface{})
 
 	id := r.URL.Query().Get("id")
 
-	_, optErr := db.Exec("DELETE FROM options WHERE option_question_id = $1", id)
+	err := json.NewDecoder(r.Body).Decode(&body)
 
-	if optErr != nil {
-		fmt.Println(optErr)
+	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -50,10 +53,26 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, queErr := db.Exec("DELETE FROM questions WHERE question_id = $1", id)
+	db := utils.GetDB()
 
-	if queErr != nil {
-		fmt.Println(queErr)
+	// Construct the dynamic query
+	var updateColumns []string
+	var values []interface{}
+	i := 1
+	for key, value := range body {
+		updateColumns = append(updateColumns, fmt.Sprintf("%s = $%d", key, i))
+		values = append(values, value)
+		i++
+	}
+
+	// Construct and execute the query
+	updateQuery := fmt.Sprintf("UPDATE research SET %s WHERE research_id = $%d", strings.Join(updateColumns, ", "), i)
+
+	values = append(values, id)
+
+	_, err = db.Exec(updateQuery, values...)
+	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -68,26 +87,8 @@ func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, jsonErr := json.Marshal("Successfully deleted the question")
-
-	if jsonErr != nil {
-		fmt.Println(jsonErr)
-		customErr := CustomError{
-			Message: "Failed to process request",
-			Status:  http.StatusInternalServerError,
-		}
-
-		// Convert the error to JSON
-		errJSON, _ := json.Marshal(customErr)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errJSON)
-		return
-	}
+	res, err := json.Marshal("Successfully updated the data")
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
 	w.Write(res)
-
 }

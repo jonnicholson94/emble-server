@@ -1,4 +1,4 @@
-package crud
+package survey
 
 import (
 	"emble-server/utils"
@@ -13,6 +13,11 @@ type Response struct {
 	ResponseQuestionId   string `json:"answer_question_id"`
 	ResponseQuestionType string `json:"answer_question_type"`
 	ResponseResearchId   string `json:"answer_research_id"`
+}
+
+type CustomError struct {
+	Message string `json:"message"`
+	Status  int32  `json:"status"`
 }
 
 func CreateResponse(w http.ResponseWriter, r *http.Request) {

@@ -1,7 +1,8 @@
-package crud
+package research
 
 import (
 	"database/sql"
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
 	"fmt"
@@ -25,7 +26,7 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(token)
+	tokenErr := auth.ValidateToken(token)
 
 	if tokenErr != nil {
 		customErr := CustomError{
@@ -42,7 +43,7 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid, err := utils.DecodeTokenId(token)
+	uid, err := auth.DecodeTokenId(token)
 
 	if err != nil {
 		fmt.Println(err)

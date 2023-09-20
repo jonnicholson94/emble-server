@@ -1,6 +1,7 @@
-package crud
+package options
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
 	"fmt"
@@ -15,10 +16,15 @@ type Option struct {
 	OptionResearchID string `json:"option_research_id"`
 }
 
+type CustomError struct {
+	Message string `json:"message"`
+	Status  int32  `json:"status"`
+}
+
 func CreateOption(w http.ResponseWriter, r *http.Request) {
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
 		customErr := CustomError{

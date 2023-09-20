@@ -14,13 +14,21 @@ var db *sql.DB
 
 func Initialise() {
 
-	err := godotenv.Load()
+	dotenvPath := os.Getenv("DOTENV_PATH")
+
+	err := godotenv.Load(dotenvPath)
 
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 
-	connStr := os.Getenv("DATABASE_URL")
+	var connStr string
+
+	if os.Getenv("ENVIRONMENT") == "development" {
+		connStr = os.Getenv("TEST_DATABASE_URL")
+	} else {
+		connStr = os.Getenv("LIVE_DATABASE_URL")
+	}
 
 	db, err = sql.Open("postgres", connStr)
 
@@ -28,8 +36,8 @@ func Initialise() {
 		log.Fatal("Error connecting to datab", err)
 	}
 
-	db.SetMaxOpenConns(3)
-	db.SetMaxIdleConns(3)
+	db.SetMaxOpenConns(5)
+	db.SetMaxIdleConns(5)
 
 	err = db.Ping()
 

@@ -1,17 +1,17 @@
-package crud
+package options
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 )
 
-func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
+func DeleteOption(w http.ResponseWriter, r *http.Request) {
+
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
 		customErr := CustomError{
@@ -28,14 +28,13 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := make(map[string]interface{})
+	db := utils.GetDB()
 
 	id := r.URL.Query().Get("id")
 
-	err := json.NewDecoder(r.Body).Decode(&body)
+	_, err := db.Exec("DELETE FROM options WHERE option_id = $1", id)
 
 	if err != nil {
-		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -50,26 +49,9 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db := utils.GetDB()
+	res, jsonErr := json.Marshal("Successfully deleted the option")
 
-	// Construct the dynamic query
-	var updateColumns []string
-	var values []interface{}
-	i := 1
-	for key, value := range body {
-		updateColumns = append(updateColumns, fmt.Sprintf("%s = $%d", key, i))
-		values = append(values, value)
-		i++
-	}
-
-	// Construct and execute the query
-	updateQuery := fmt.Sprintf("UPDATE questions SET %s WHERE question_id = $%d", strings.Join(updateColumns, ", "), i)
-
-	values = append(values, id)
-
-	_, err = db.Exec(updateQuery, values...)
-	if err != nil {
-		fmt.Println(err)
+	if jsonErr != nil {
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -83,9 +65,8 @@ func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 		w.Write(errJSON)
 		return
 	}
-
-	res, err := json.Marshal("Successfully saved your changes")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
+
 }

@@ -1,6 +1,7 @@
-package crud
+package research
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
 	"fmt"
@@ -20,11 +21,33 @@ type Research struct {
 	ResearchQuestions        []NewQuestion `json:"research_questions"`
 }
 
+type NewQuestion struct {
+	QuestionId         string   `json:"question_id"`
+	QuestionTitle      string   `json:"question_title"`
+	QuestionType       string   `json:"question_type"`
+	QuestionOptions    []Option `json:"question_options"`
+	QuestionResearchId string   `json:"question_research_id"`
+	QuestionIndex      int      `json:"question_index"`
+}
+
+type Option struct {
+	OptionId         string `json:"option_id"`
+	OptionContent    string `json:"option_content"`
+	OptionQuestionID string `json:"option_question_id"`
+	OptionIndex      int    `json:"option_index"`
+	OptionResearchID string `json:"option_research_id"`
+}
+
+type CustomError struct {
+	Message string `json:"message"`
+	Status  int32  `json:"status"`
+}
+
 func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
 		fmt.Println(tokenErr.Error())
@@ -70,7 +93,7 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	// Decode the token to get the user id
 
-	uid, err := utils.DecodeTokenId(tk)
+	uid, err := auth.DecodeTokenId(tk)
 
 	if err != nil {
 		fmt.Println(err.Error())

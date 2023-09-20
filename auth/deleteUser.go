@@ -1,39 +1,45 @@
-package crud
+package auth
 
 import (
 	"emble-server/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
-func DeleteComment(w http.ResponseWriter, r *http.Request) {
+type UserToDelete struct {
+	Email string `json:"email"`
+}
 
-	tk := r.Header.Get("Authorization")
+func DeleteUser(w http.ResponseWriter, r *http.Request) {
 
-	tokenErr := utils.ValidateToken(tk)
+	var user UserToDelete
 
-	if tokenErr != nil {
+	err := json.NewDecoder(r.Body).Decode(&user)
+
+	if err != nil {
 		customErr := CustomError{
-			Message: "Invalid token",
-			Status:  http.StatusUnauthorized,
+			Message: "Failed to decode body",
+			Status:  http.StatusInternalServerError,
 		}
 
 		// Convert the error to JSON
 		errJSON, _ := json.Marshal(customErr)
 
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(errJSON)
 		return
 	}
 
 	db := utils.GetDB()
 
-	id := r.URL.Query().Get("id")
+	query := "DELETE FROM users WHERE email = $1;"
 
-	_, err := db.Exec("DELETE FROM comments WHERE comment_id = $1", id)
+	_, queryErr := db.Exec(query, user.Email)
 
-	if err != nil {
+	if queryErr != nil {
+		fmt.Println(queryErr)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -48,24 +54,10 @@ func DeleteComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, jsonErr := json.Marshal("Successfully deleted the comment")
-
-	if jsonErr != nil {
-		customErr := CustomError{
-			Message: "Failed to process request",
-			Status:  http.StatusInternalServerError,
-		}
-
-		// Convert the error to JSON
-		errJSON, _ := json.Marshal(customErr)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errJSON)
-		return
-	}
+	res, _ := json.Marshal("Successfully deleted the user")
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 
 }

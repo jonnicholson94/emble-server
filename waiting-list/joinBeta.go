@@ -1,4 +1,4 @@
-package beta
+package waitingList
 
 import (
 	"emble-server/utils"

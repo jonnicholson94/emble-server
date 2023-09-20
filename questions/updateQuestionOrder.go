@@ -1,6 +1,7 @@
-package crud
+package questions
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
 	"net/http"
@@ -15,7 +16,7 @@ func UpdateQuestionOrder(w http.ResponseWriter, r *http.Request) {
 
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
 		customErr := CustomError{

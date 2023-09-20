@@ -1,26 +1,20 @@
-package crud
+package options
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
-type NewQuestion struct {
-	QuestionId         string   `json:"question_id"`
-	QuestionTitle      string   `json:"question_title"`
-	QuestionType       string   `json:"question_type"`
-	QuestionOptions    []Option `json:"question_options"`
-	QuestionResearchId string   `json:"question_research_id"`
-	QuestionIndex      int      `json:"question_index"`
+type UpdatedOption struct {
+	OptionContent string `json:"option_content"`
 }
 
-func CreateQuestion(w http.ResponseWriter, r *http.Request) {
-
+func EditOption(w http.ResponseWriter, r *http.Request) {
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
 		customErr := CustomError{
@@ -37,14 +31,15 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var nq NewQuestion
+	id := r.URL.Query().Get("id")
 
-	err := json.NewDecoder(r.Body).Decode(&nq)
+	var option UpdatedOption
+
+	err := json.NewDecoder(r.Body).Decode(&option)
 
 	if err != nil {
-		fmt.Println(err)
 		customErr := CustomError{
-			Message: "Failed to decode data",
+			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
 		}
 
@@ -59,17 +54,14 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	insertQuery := "INSERT INTO questions (question_id, question_title, question_type, question_research_id, question_index) VALUES ($1, $2, $3, $4, $5)"
+	query := "UPDATE options SET option_content = $1 WHERE option_id = $2"
 
-	data, err := db.Exec(insertQuery, nq.QuestionId, nq.QuestionTitle, nq.QuestionType, nq.QuestionResearchId, nq.QuestionIndex)
+	_, dbErr := db.Exec(query, option.OptionContent, id)
 
-	fmt.Println(data)
-
-	if err != nil {
-		fmt.Println(err)
+	if dbErr != nil {
 		customErr := CustomError{
-			Message: "Failed to insert data",
-			Status:  http.StatusBadRequest,
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
 		}
 
 		// Convert the error to JSON
@@ -81,9 +73,8 @@ func CreateQuestion(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal("Successfully created the question")
+	res, err := json.Marshal("Successfully updated the comment")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
-
 }

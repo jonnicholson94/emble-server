@@ -1,29 +1,18 @@
-package crud
+package questions
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
 	"fmt"
 	"net/http"
 )
 
-type NewComment struct {
-	CommentId         string `json:"comment_id"`
-	CommentContent    string `json:"comment_content"`
-	CommentResearchId string `json:"comment_research_id"`
-	CommentTimestamp  int    `json:"comment_timestamp"`
-}
-
-type CustomError struct {
-	Message string `json:"message"`
-	Status  int32  `json:"status"`
-}
-
-func CreateComment(w http.ResponseWriter, r *http.Request) {
+func DeleteQuestion(w http.ResponseWriter, r *http.Request) {
 
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
 		customErr := CustomError{
@@ -40,54 +29,16 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid, err := utils.DecodeTokenId(tk)
-
-	if err != nil {
-		customErr := CustomError{
-			Message: "Error decoding token",
-			Status:  http.StatusUnauthorized,
-		}
-
-		// Convert the error to JSON
-		errJSON, _ := json.Marshal(customErr)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errJSON)
-		return
-	}
-
-	var nc NewComment
-
-	decodeErr := json.NewDecoder(r.Body).Decode(&nc)
-
-	if decodeErr != nil {
-		customErr := CustomError{
-			Message: "Error decoding body",
-			Status:  http.StatusInternalServerError,
-		}
-
-		// Convert the error to JSON
-		errJSON, _ := json.Marshal(customErr)
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errJSON)
-		return
-	}
-
 	db := utils.GetDB()
 
-	insertQuery := "INSERT INTO comments (comment_id, comment_content, comment_user_id, comment_research_id, comment_timestamp) VALUES ($1, $2, $3, $4, $5)"
+	id := r.URL.Query().Get("id")
 
-	fmt.Println(nc)
+	_, optErr := db.Exec("DELETE FROM options WHERE option_question_id = $1", id)
 
-	data, err := db.Exec(insertQuery, nc.CommentId, nc.CommentContent, uid, nc.CommentResearchId, nc.CommentTimestamp)
-
-	if err != nil {
-		fmt.Println(err)
+	if optErr != nil {
+		fmt.Println(optErr)
 		customErr := CustomError{
-			Message: "Database error",
+			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
 		}
 
@@ -100,11 +51,44 @@ func CreateComment(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(data)
+	_, queErr := db.Exec("DELETE FROM questions WHERE question_id = $1", id)
 
-	res, _ := json.Marshal("Successfully created the comment")
+	if queErr != nil {
+		fmt.Println(queErr)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
+		return
+	}
+
+	res, jsonErr := json.Marshal("Successfully deleted the question")
+
+	if jsonErr != nil {
+		fmt.Println(jsonErr)
+		customErr := CustomError{
+			Message: "Failed to process request",
+			Status:  http.StatusInternalServerError,
+		}
+
+		// Convert the error to JSON
+		errJSON, _ := json.Marshal(customErr)
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errJSON)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 	w.Write(res)
 
 }

@@ -1,19 +1,18 @@
-package crud
+package questions
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 )
 
-type UpdatedOption struct {
-	OptionContent string `json:"option_content"`
-}
-
-func EditOption(w http.ResponseWriter, r *http.Request) {
+func UpdateQuestion(w http.ResponseWriter, r *http.Request) {
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
 		customErr := CustomError{
@@ -30,13 +29,14 @@ func EditOption(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	body := make(map[string]interface{})
+
 	id := r.URL.Query().Get("id")
 
-	var option UpdatedOption
-
-	err := json.NewDecoder(r.Body).Decode(&option)
+	err := json.NewDecoder(r.Body).Decode(&body)
 
 	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -53,11 +53,24 @@ func EditOption(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "UPDATE options SET option_content = $1 WHERE option_id = $2"
+	// Construct the dynamic query
+	var updateColumns []string
+	var values []interface{}
+	i := 1
+	for key, value := range body {
+		updateColumns = append(updateColumns, fmt.Sprintf("%s = $%d", key, i))
+		values = append(values, value)
+		i++
+	}
 
-	_, dbErr := db.Exec(query, option.OptionContent, id)
+	// Construct and execute the query
+	updateQuery := fmt.Sprintf("UPDATE questions SET %s WHERE question_id = $%d", strings.Join(updateColumns, ", "), i)
 
-	if dbErr != nil {
+	values = append(values, id)
+
+	_, err = db.Exec(updateQuery, values...)
+	if err != nil {
+		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -72,7 +85,7 @@ func EditOption(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal("Successfully updated the comment")
+	res, err := json.Marshal("Successfully saved your changes")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)

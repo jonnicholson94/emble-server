@@ -3,7 +3,6 @@ package auth
 import (
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"golang.org/x/crypto/bcrypt"
@@ -88,8 +87,6 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 		w.Write(errJSON)
 		return
 	}
-
-	fmt.Println("Successfully signed in.")
 
 	// Generate JWT
 

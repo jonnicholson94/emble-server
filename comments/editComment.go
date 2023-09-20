@@ -1,21 +1,22 @@
-package crud
+package comments
 
 import (
+	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strings"
 )
 
-func EditItem(w http.ResponseWriter, r *http.Request) {
+type EditedComment struct {
+	CommentContent string `json:"comment_content"`
+}
 
+func EditComment(w http.ResponseWriter, r *http.Request) {
 	tk := r.Header.Get("Authorization")
 
-	tokenErr := utils.ValidateToken(tk)
+	tokenErr := auth.ValidateToken(tk)
 
 	if tokenErr != nil {
-		fmt.Println(tokenErr)
 		customErr := CustomError{
 			Message: "Invalid token",
 			Status:  http.StatusUnauthorized,
@@ -30,14 +31,13 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	body := make(map[string]interface{})
-
 	id := r.URL.Query().Get("id")
+
+	var body EditedComment
 
 	err := json.NewDecoder(r.Body).Decode(&body)
 
 	if err != nil {
-		fmt.Println(err)
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -54,24 +54,11 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	// Construct the dynamic query
-	var updateColumns []string
-	var values []interface{}
-	i := 1
-	for key, value := range body {
-		updateColumns = append(updateColumns, fmt.Sprintf("%s = $%d", key, i))
-		values = append(values, value)
-		i++
-	}
+	query := "UPDATE comments SET comment_content = $1 WHERE comment_id = $2"
 
-	// Construct and execute the query
-	updateQuery := fmt.Sprintf("UPDATE research SET %s WHERE research_id = $%d", strings.Join(updateColumns, ", "), i)
+	_, dbErr := db.Exec(query, body.CommentContent, id)
 
-	values = append(values, id)
-
-	_, err = db.Exec(updateQuery, values...)
-	if err != nil {
-		fmt.Println(err)
+	if dbErr != nil {
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -86,8 +73,9 @@ func EditItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := json.Marshal("Successfully updated the data")
+	res, err := json.Marshal("Successfully updated the comment")
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(res)
+
 }
