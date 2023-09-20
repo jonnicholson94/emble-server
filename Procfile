@@ -1,2 +1,2 @@
 
-web: go run main.go -port=$PORT
+web: ./main
