@@ -75,7 +75,9 @@ func main() {
 
 	handler := cors.AllowAll().Handler(mux)
 
-	http.ListenAndServe(":8080", handler)
+	port := os.Getenv("PORT")
+
+	http.ListenAndServe(port, handler)
 
 	utils.GetDB().Close()
 }
