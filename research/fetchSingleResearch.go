@@ -228,50 +228,59 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check if the question already exists in finalResearch
-		questionExists := false
-		for _, q := range finalResearch.Questions {
+		if question.QuestionID != "" {
+			questionExists := false
 
-			if q.QuestionID == question.QuestionID {
-				questionExists = true
-				break
+			for _, q := range finalResearch.Questions {
+
+				if q.QuestionID == question.QuestionID {
+					questionExists = true
+					break
+				}
 			}
+
+			if !questionExists {
+				finalResearch.Questions = append(finalResearch.Questions, question)
+			}
+
 		}
 
 		// If the question doesn't exist, append it to finalResearch
-		if !questionExists {
-			finalResearch.Questions = append(finalResearch.Questions, question)
-		}
 
-		for i, q := range finalResearch.Questions {
-			if q.QuestionID == question.QuestionID && q.QuestionID == option.OptionQuestionId {
-				// Check if the option already exists in QuestionOptions
-				optionExists := false
-				for _, o := range q.QuestionOptions {
-					if o.OptionID == option.OptionID {
-						optionExists = true
-						break
+		if option.OptionID != "" {
+			for i, q := range finalResearch.Questions {
+				if q.QuestionID == question.QuestionID && q.QuestionID == option.OptionQuestionId {
+					// Check if the option already exists in QuestionOptions
+					optionExists := false
+					for _, o := range q.QuestionOptions {
+						if o.OptionID == option.OptionID {
+							optionExists = true
+							break
+						}
 					}
-				}
 
-				// If the option doesn't exist, append it to QuestionOptions
-				if !optionExists {
-					finalResearch.Questions[i].QuestionOptions = append(finalResearch.Questions[i].QuestionOptions, option)
+					// If the option doesn't exist, append it to QuestionOptions
+					if !optionExists {
+						finalResearch.Questions[i].QuestionOptions = append(finalResearch.Questions[i].QuestionOptions, option)
+					}
 				}
 			}
 		}
 
 		// Check if the comment already exists in finalResearch
-		commentExists := false
-		for _, c := range finalResearch.Comments {
-			if c.CommentID == comment.CommentID {
-				commentExists = true
-				break
+		if comment.CommentID != "" {
+			commentExists := false
+			for _, c := range finalResearch.Comments {
+				if c.CommentID == comment.CommentID {
+					commentExists = true
+					break
+				}
 			}
-		}
 
-		// If the comment doesn't exist, append it to finalResearch
-		if !commentExists {
-			finalResearch.Comments = append(finalResearch.Comments, comment)
+			// If the comment doesn't exist, append it to finalResearch
+			if !commentExists {
+				finalResearch.Comments = append(finalResearch.Comments, comment)
+			}
 		}
 
 	}

@@ -12,3 +12,9 @@ require (
 )
 
 require github.com/google/uuid v1.3.1
+
+require (
+	github.com/resendlabs/resend-go v1.7.0 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.13.0+incompatible // indirect
+)
