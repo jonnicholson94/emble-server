@@ -29,9 +29,11 @@ func main() {
 
 	mux.HandleFunc("/create-user", auth.CreateUser)
 	mux.HandleFunc("/delete-user", auth.DeleteUser)
+	mux.HandleFunc("/get-user", auth.GetUser)
 	mux.HandleFunc("/password-reset", auth.PasswordReset)
 	mux.HandleFunc("/sign-in", auth.SignIn)
 	mux.HandleFunc("/update-password", auth.UpdatePassword)
+	mux.HandleFunc("/update-user", auth.UpdateUser)
 
 	// Comments
 
