@@ -6,6 +6,7 @@ import (
 	"emble-server/options"
 	"emble-server/questions"
 	"emble-server/research"
+	"emble-server/responses"
 	"emble-server/survey"
 	"emble-server/utils"
 	waitingList "emble-server/waiting-list"
@@ -58,6 +59,10 @@ func main() {
 	mux.HandleFunc("/edit-item", research.EditItem)
 	mux.HandleFunc("/research", research.FetchResearch)
 	mux.HandleFunc("/single-research", research.FetchSingleResearch)
+
+	// Responses
+
+	mux.HandleFunc("/responses", responses.FetchResponses)
 
 	// Survey
 

@@ -21,7 +21,7 @@ type FinalSurvey struct {
 type JoinedSurvey struct {
 	ResearchID               string         `json:"id"`
 	ResearchStatus           string         `json:"status"`
-	ResearchPrototypeUrl     string         `json:"prototype_url"`
+	ResearchPrototypeUrl     sql.NullString `json:"prototype_url"`
 	ResearchIntro            bool           `json:"intro"`
 	ResearchIntroTitle       string         `json:"intro_title"`
 	ResearchIntroDescription string         `json:"intro_description"`
@@ -137,7 +137,7 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 		if finalSurvey.ResearchID != result.ResearchID {
 			finalSurvey.ResearchID = result.ResearchID
 			finalSurvey.ResearchStatus = result.ResearchStatus
-			finalSurvey.ResearchPrototypeUrl = result.ResearchPrototypeUrl
+			finalSurvey.ResearchPrototypeUrl = result.ResearchPrototypeUrl.String
 			finalSurvey.ResearchIntro = result.ResearchIntro
 			finalSurvey.ResearchIntroTitle = result.ResearchIntroTitle
 			finalSurvey.ResearchIntroDescription = result.ResearchIntroDescription
