@@ -11,12 +11,24 @@ import (
 	"emble-server/utils"
 	waitingList "emble-server/waiting-list"
 	"emble-server/ws"
+	"log"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/rs/cors"
 )
 
 func main() {
+
+	if os.Getenv("ENVIRONMENT") == "development" {
+
+		err := godotenv.Load()
+		if err != nil {
+			log.Fatal("Error loading .env file")
+		}
+
+	}
 
 	utils.Initialise()
 
