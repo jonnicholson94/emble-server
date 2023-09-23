@@ -11,6 +11,7 @@ import (
 	"emble-server/utils"
 	waitingList "emble-server/waiting-list"
 	"emble-server/ws"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -95,7 +96,9 @@ func main() {
 
 	port := os.Getenv("PORT")
 
-	http.ListenAndServe(port, handler)
+	fmt.Println(port)
+
+	http.ListenAndServe(":"+port, handler)
 
 	utils.GetDB().Close()
 }
