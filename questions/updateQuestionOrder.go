@@ -4,6 +4,7 @@ import (
 	"emble-server/auth"
 	"emble-server/utils"
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -38,6 +39,7 @@ func UpdateQuestionOrder(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&questions)
 
 	if err != nil {
+		fmt.Println(err.Error())
 		customErr := CustomError{
 			Message: "Failed to process request",
 			Status:  http.StatusInternalServerError,
@@ -55,11 +57,12 @@ func UpdateQuestionOrder(w http.ResponseWriter, r *http.Request) {
 	db := utils.GetDB()
 
 	for _, data := range questions {
-		updateQuery := "UPDATE questions SET index = $1 WHERE id = $2"
+		updateQuery := "UPDATE questions SET question_index = $1 WHERE question_id = $2"
 
 		_, err = db.Exec(updateQuery, data.QuestionIndex, data.QuestionID)
 
 		if err != nil {
+			fmt.Println(err.Error())
 			customErr := CustomError{
 				Message: "Failed to process request",
 				Status:  http.StatusInternalServerError,
@@ -75,6 +78,9 @@ func UpdateQuestionOrder(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	w.WriteHeader(http.StatusOK)
+	res, err := json.Marshal("Successfully saved your changes")
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(res)
 
 }

@@ -12,14 +12,11 @@ import (
 	waitingList "emble-server/waiting-list"
 	"emble-server/ws"
 	"net/http"
-	"os"
 
 	"github.com/rs/cors"
 )
 
 func main() {
-
-	os.Setenv("DOTENV_PATH", "./.env")
 
 	utils.Initialise()
 
@@ -84,9 +81,7 @@ func main() {
 
 	handler := cors.AllowAll().Handler(mux)
 
-	port := os.Getenv("PORT")
-
-	http.ListenAndServe(port, handler)
+	http.ListenAndServe(":8080", handler)
 
 	utils.GetDB().Close()
 }

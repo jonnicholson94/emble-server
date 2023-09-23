@@ -14,9 +14,7 @@ var db *sql.DB
 
 func Initialise() {
 
-	dotenvPath := os.Getenv("DOTENV_PATH")
-
-	err := godotenv.Load(dotenvPath)
+	err := godotenv.Load()
 
 	if err != nil {
 		log.Fatal("Error loading .env file")
