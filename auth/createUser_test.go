@@ -7,15 +7,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
 func setupCreateTest() func() {
 
 	user := "test_email@go.com"
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	utils.Initialise()
 
@@ -49,8 +46,6 @@ func TestCreateUser(t *testing.T) {
 		Email:     "test_email@go.com",
 		Password:  "testpassword123!",
 	}
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	utils.Initialise()
 

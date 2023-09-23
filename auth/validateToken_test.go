@@ -2,13 +2,10 @@ package auth
 
 import (
 	"emble-server/utils"
-	"os"
 	"testing"
 )
 
 func TestValidateToken(t *testing.T) {
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	token, err := utils.CreateToken(1234, "Test", "Name")
 

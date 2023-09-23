@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
@@ -19,8 +18,6 @@ func setupDeleteTest() {
 		Email:     "test_email@go.com",
 		Password:  "testpassword123!",
 	}
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	utils.Initialise()
 
@@ -45,8 +42,6 @@ func TestDeleteUser(t *testing.T) {
 	user := UserToDelete{
 		Email: "test_email@go.com",
 	}
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	utils.Initialise()
 

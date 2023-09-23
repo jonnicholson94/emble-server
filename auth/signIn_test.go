@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 )
 
@@ -19,8 +18,6 @@ func setupSignInTest() func() {
 		Email:     "test_email@go.com",
 		Password:  "testpassword123!",
 	}
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	utils.Initialise()
 
@@ -39,8 +36,6 @@ func setupSignInTest() func() {
 	return func() {
 
 		existingUser := "test_email@go.com"
-
-		os.Setenv("DOTENV_PATH", "../.env")
 
 		utils.Initialise()
 
@@ -70,8 +65,6 @@ func TestSignIn(t *testing.T) {
 		Email:    "test_email@go.com",
 		Password: "testpassword123!",
 	}
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	utils.Initialise()
 

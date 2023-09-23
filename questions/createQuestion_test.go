@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/google/uuid"
@@ -35,8 +34,6 @@ func TestCreateQuestion(t *testing.T) {
 		QuestionResearchId: researchUUID.String(),
 		QuestionIndex:      1,
 	}
-
-	os.Setenv("DOTENV_PATH", "../.env")
 
 	utils.Initialise()
 

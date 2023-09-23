@@ -70,8 +70,6 @@ func PasswordReset(w http.ResponseWriter, r *http.Request) {
 
 	// Send email containing appropriate link
 
-	os.Setenv("DOTENV_PATH", "../.env")
-
 	var customURL string
 
 	env := os.Getenv("ENVIRONMENT")
