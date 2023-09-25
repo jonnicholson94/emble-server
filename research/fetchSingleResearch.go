@@ -16,6 +16,7 @@ type FinalResearch struct {
 	Status           string     `json:"status"`
 	Limit            int        `json:"limit"`
 	PrototypeUrl     string     `json:"prototype_url"`
+	Type             string     `json:"type"`
 	UserId           string     `json:"user_id"`
 	Intro            bool       `json:"intro"`
 	IntroTitle       string     `json:"intro_title"`
@@ -37,6 +38,7 @@ type JoinedResearch struct {
 	Intro              sql.NullBool   `json:"research_intro"`
 	IntroTitle         sql.NullString `json:"research_intro_title"`
 	IntroDescription   sql.NullString `json:"research_intro_description"`
+	Type               sql.NullString `json:"research_type"`
 	QuestionID         sql.NullString `json:"question_id"`
 	QuestionTitle      sql.NullString `json:"question_title"`
 	QuestionType       sql.NullString `json:"question_type"`
@@ -152,6 +154,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			&result.Intro,
 			&result.IntroTitle,
 			&result.IntroDescription,
+			&result.Type,
 			&result.QuestionID,
 			&result.QuestionTitle,
 			&result.QuestionType,
@@ -219,6 +222,7 @@ func FetchSingleResearch(w http.ResponseWriter, r *http.Request) {
 			finalResearch.Limit = result.Limit
 			finalResearch.Status = result.Status
 			finalResearch.PrototypeUrl = result.PrototypeUrl.String
+			finalResearch.Type = result.Type.String
 			finalResearch.UserId = result.UserId
 			finalResearch.Intro = result.Intro.Bool
 			finalResearch.IntroTitle = result.IntroTitle.String

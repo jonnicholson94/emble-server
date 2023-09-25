@@ -15,6 +15,7 @@ type FinalSurvey struct {
 	ResearchIntro            bool             `json:"intro"`
 	ResearchIntroTitle       string           `json:"intro_title"`
 	ResearchIntroDescription string           `json:"intro_description"`
+	ResearchType             string           `json:"type"`
 	ResearchQuestions        []SurveyQuestion `json:"questions"`
 }
 
@@ -23,8 +24,9 @@ type JoinedSurvey struct {
 	ResearchStatus           string         `json:"status"`
 	ResearchPrototypeUrl     sql.NullString `json:"prototype_url"`
 	ResearchIntro            bool           `json:"intro"`
-	ResearchIntroTitle       string         `json:"intro_title"`
-	ResearchIntroDescription string         `json:"intro_description"`
+	ResearchIntroTitle       sql.NullString `json:"intro_title"`
+	ResearchIntroDescription sql.NullString `json:"intro_description"`
+	ResearchType             string         `json:"research_type"`
 	QuestionID               sql.NullString `json:"question_id"`
 	QuestionTitle            sql.NullString `json:"question_title"`
 	QuestionType             sql.NullString `json:"question_type"`
@@ -60,7 +62,7 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "SELECT research.research_id, research.research_status, research.research_prototype_url, research.research_intro, research.research_intro_title, research.research_intro_description, questions.question_id, questions.question_title, questions.question_type, questions.question_index, options.* FROM research LEFT JOIN questions ON research.research_id = questions.question_research_id LEFT JOIN options ON research.research_id = options.option_research_id WHERE research.research_id = $1"
+	query := "SELECT research.research_id, research.research_status, research.research_prototype_url, research.research_intro, research.research_intro_title, research.research_intro_description, research.research_type, questions.question_id, questions.question_title, questions.question_type, questions.question_index, options.* FROM research LEFT JOIN questions ON research.research_id = questions.question_research_id LEFT JOIN options ON research.research_id = options.option_research_id WHERE research.research_id = $1"
 
 	var finalSurvey FinalSurvey
 
@@ -92,6 +94,7 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 			&result.ResearchIntro,
 			&result.ResearchIntroTitle,
 			&result.ResearchIntroDescription,
+			&result.ResearchType,
 			&result.QuestionID,
 			&result.QuestionTitle,
 			&result.QuestionType,
@@ -139,8 +142,9 @@ func FetchSurveyDetails(w http.ResponseWriter, r *http.Request) {
 			finalSurvey.ResearchStatus = result.ResearchStatus
 			finalSurvey.ResearchPrototypeUrl = result.ResearchPrototypeUrl.String
 			finalSurvey.ResearchIntro = result.ResearchIntro
-			finalSurvey.ResearchIntroTitle = result.ResearchIntroTitle
-			finalSurvey.ResearchIntroDescription = result.ResearchIntroDescription
+			finalSurvey.ResearchIntroTitle = result.ResearchIntroTitle.String
+			finalSurvey.ResearchIntroDescription = result.ResearchIntroDescription.String
+			finalSurvey.ResearchType = result.ResearchType
 		}
 
 		// Check if the question already exists in finalResearch

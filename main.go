@@ -11,7 +11,6 @@ import (
 	"emble-server/utils"
 	waitingList "emble-server/waiting-list"
 	"emble-server/ws"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -95,8 +94,6 @@ func main() {
 	handler := cors.AllowAll().Handler(mux)
 
 	port := os.Getenv("PORT")
-
-	fmt.Println(port)
 
 	http.ListenAndServe(":"+port, handler)
 
