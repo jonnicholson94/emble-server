@@ -100,7 +100,7 @@ func FetchResearch(w http.ResponseWriter, r *http.Request) {
 			&result.ResearchIntro,
 			&result.ResearchIntroTitle,
 			&result.ResearchIntroDescription,
-			&result.ResearchType,
+			&result.ResearchType.String,
 		)
 
 		if err != nil {
