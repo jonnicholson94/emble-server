@@ -155,7 +155,7 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Generate JWT
 
-	token, err := utils.CreateToken(insertedUser.ID, insertedUser.FirstName, insertedUser.LastName)
+	token, err := utils.CreateToken(insertedUser.ID, insertedUser.FirstName, insertedUser.LastName, "password")
 
 	if err != nil {
 		customErr := CustomError{

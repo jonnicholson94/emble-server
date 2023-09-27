@@ -90,7 +90,7 @@ func SignIn(w http.ResponseWriter, r *http.Request) {
 
 	// Generate JWT
 
-	token, err := utils.CreateToken(fetchedUser.ID, fetchedUser.FirstName, fetchedUser.LastName)
+	token, err := utils.CreateToken(fetchedUser.ID, fetchedUser.FirstName, fetchedUser.LastName, "password")
 
 	if err != nil {
 		customErr := CustomError{

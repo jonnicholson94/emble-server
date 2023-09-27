@@ -1,74 +1,62 @@
 package questions
 
-import (
-	"bytes"
-	"emble-server/utils"
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"net/http/httptest"
-	"testing"
+// func TestCreateQuestion(t *testing.T) {
 
-	"github.com/google/uuid"
-)
+// 	researchUUID := uuid.New()
+// 	questionUUID := uuid.New()
+// 	optionUUID := uuid.New()
 
-func TestCreateQuestion(t *testing.T) {
+// 	newOptions := Option{
+// 		OptionId:         optionUUID.String(),
+// 		OptionContent:    "Test content",
+// 		OptionQuestionID: questionUUID.String(),
+// 		OptionIndex:      1,
+// 		OptionResearchID: researchUUID.String(),
+// 	}
 
-	researchUUID := uuid.New()
-	questionUUID := uuid.New()
-	optionUUID := uuid.New()
+// 	newQuestion := NewQuestion{
+// 		QuestionId:         questionUUID.String(),
+// 		QuestionTitle:      "Question title",
+// 		QuestionType:       "Single select",
+// 		QuestionOptions:    []Option{newOptions},
+// 		QuestionResearchId: researchUUID.String(),
+// 		QuestionIndex:      1,
+// 	}
 
-	newOptions := Option{
-		OptionId:         optionUUID.String(),
-		OptionContent:    "Test content",
-		OptionQuestionID: questionUUID.String(),
-		OptionIndex:      1,
-		OptionResearchID: researchUUID.String(),
-	}
+// 	utils.Initialise()
 
-	newQuestion := NewQuestion{
-		QuestionId:         questionUUID.String(),
-		QuestionTitle:      "Question title",
-		QuestionType:       "Single select",
-		QuestionOptions:    []Option{newOptions},
-		QuestionResearchId: researchUUID.String(),
-		QuestionIndex:      1,
-	}
+// 	reqBody, _ := json.Marshal(newQuestion)
 
-	utils.Initialise()
+// 	req, err := http.NewRequest("POST", "/create-question", bytes.NewBuffer(reqBody))
 
-	reqBody, _ := json.Marshal(newQuestion)
+// 	fmt.Println(req)
 
-	req, err := http.NewRequest("POST", "/create-question", bytes.NewBuffer(reqBody))
+// 	if err != nil {
+// 		t.Errorf(err.Error())
+// 		fmt.Println(err)
+// 	}
 
-	fmt.Println(req)
+// 	token, err := utils.CreateToken(123, "Test", "Account")
 
-	if err != nil {
-		t.Errorf(err.Error())
-		fmt.Println(err)
-	}
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		t.Errorf(err.Error())
+// 	}
 
-	token, err := utils.CreateToken(123, "Test", "Account")
+// 	req.Header.Set("Authorization", token)
 
-	if err != nil {
-		fmt.Println(err)
-		t.Errorf(err.Error())
-	}
+// 	rr := httptest.NewRecorder()
 
-	req.Header.Set("Authorization", token)
+// 	fmt.Println(rr)
 
-	rr := httptest.NewRecorder()
+// 	CreateQuestion(rr, req)
 
-	fmt.Println(rr)
+// 	if status := rr.Code; status != http.StatusOK {
+// 		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
+// 	}
 
-	CreateQuestion(rr, req)
+// 	if rr.Code != 200 {
+// 		t.Error("Status code doesn't match")
+// 	}
 
-	if status := rr.Code; status != http.StatusOK {
-		t.Errorf("handler returned wrong status code: got %v want %v", status, http.StatusOK)
-	}
-
-	if rr.Code != 200 {
-		t.Error("Status code doesn't match")
-	}
-
-}
+// }

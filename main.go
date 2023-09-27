@@ -3,6 +3,7 @@ package main
 import (
 	"emble-server/auth"
 	"emble-server/comments"
+	"emble-server/oauth"
 	"emble-server/options"
 	"emble-server/questions"
 	"emble-server/research"
@@ -49,6 +50,10 @@ func main() {
 	mux.HandleFunc("/create-comment", comments.CreateComment)
 	mux.HandleFunc("/delete-comment", comments.DeleteComment)
 	mux.HandleFunc("/edit-comment", comments.EditComment)
+
+	// OAuth
+
+	mux.HandleFunc("/exchange-code", oauth.ExchangeCode)
 
 	// Options
 

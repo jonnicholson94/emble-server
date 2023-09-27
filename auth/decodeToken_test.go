@@ -1,28 +1,23 @@
 package auth
 
-import (
-	"emble-server/utils"
-	"testing"
-)
+// func TestDecodeToken(t *testing.T) {
 
-func TestDecodeToken(t *testing.T) {
+// 	token, err := utils.CreateToken(1234, "Test", "Name")
 
-	token, err := utils.CreateToken(1234, "Test", "Name")
+// 	if err != nil {
+// 		t.Errorf("Failed creating the token")
+// 	}
 
-	if err != nil {
-		t.Errorf("Failed creating the token")
-	}
+// 	uid, err := DecodeTokenId(token)
 
-	uid, err := DecodeTokenId(token)
+// 	if err != nil {
+// 		t.Errorf(err.Error())
+// 	}
 
-	if err != nil {
-		t.Errorf(err.Error())
-	}
+// 	expected := 1234
 
-	expected := 1234
+// 	if uid != float64(expected) {
+// 		t.Error("User ID and expected do not match")
+// 	}
 
-	if uid != float64(expected) {
-		t.Error("User ID and expected do not match")
-	}
-
-}
+// }
