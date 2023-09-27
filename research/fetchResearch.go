@@ -16,11 +16,11 @@ type FetchedResearch struct {
 	ResearchStatus           string         `json:"research_status"`
 	ResearchLimit            string         `json:"research_limit"`
 	ResearchPrototypeUrl     sql.NullString `json:"research_prototype_url"`
-	ResearchType             string         `json:"research_type"`
 	ResearchUserId           int            `json:"research_user_id"`
 	ResearchIntro            sql.NullBool   `json:"research_intro"`
 	ResearchIntroTitle       sql.NullString `json:"research_intro_title"`
 	ResearchIntroDescription sql.NullString `json:"research_intro_description"`
+	ResearchType             string         `json:"research_type"`
 }
 
 func FetchResearch(w http.ResponseWriter, r *http.Request) {

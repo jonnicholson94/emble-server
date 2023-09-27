@@ -90,7 +90,7 @@ func CreateResearch(w http.ResponseWriter, r *http.Request) {
 
 	db := utils.GetDB()
 
-	query := "INSERT INTO research (research_id, research_title, research_description, research_status, research_limit, research_prototype_url, research_user_id, research_intro, research_intro_title, research_intro_description, research_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)"
+	query := "INSERT INTO research (research_id, research_title, research_description, research_status, research_limit, research_prototype_url, research_user_id, research_intro, research_intro_title, research_intro_description, research_type) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)"
 
 	// Decode the token to get the user id
 
