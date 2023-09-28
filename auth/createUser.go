@@ -139,8 +139,9 @@ func CreateUser(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
+		fmt.Println(err.Error())
 		customErr := CustomError{
-			Message: "Error querying database",
+			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 

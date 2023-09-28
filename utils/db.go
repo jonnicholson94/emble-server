@@ -22,9 +22,6 @@ func Initialise() {
 
 	db, _ = sql.Open("postgres", connStr)
 
-	db.SetMaxOpenConns(5)
-	db.SetMaxIdleConns(5)
-
 	_ = db.Ping()
 
 	fmt.Println("Connected to the database")
